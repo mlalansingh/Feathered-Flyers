@@ -1,50 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mitch's Feathered Flyers Admin V63</title>
     <style>
         :root {
-            --primary: #f1c40f;          
-            --danger: #e74c3c;           
-            --success: #27ae60;          
-            --swap-highlight: #3498db;   
-            --background: #f4f6f9;       
-            --white: #ffffff;            
-            --outer-bg-dark: #2b3d4f;    
-            --dark: #2c3e50;             
-            --card: #ffffff;             
-            --light: #ecf0f1;            
-            --secondary: #666666;        
+            --primary: #f1c40f;
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --swap-highlight: #3498db;
+            --background: #f4f6f9;
+            --white: #ffffff;
+            --outer-bg-dark: #2b3d4f;
+            --dark: #2c3e50;
+            --card: #ffffff;
+            --light: #ecf0f1;
+            --secondary: #666666;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--outer-bg-dark); 
+            background-color: var(--outer-bg-dark);
             margin: 0;
             padding: 0;
             color: var(--dark);
             -webkit-text-size-adjust: 100%;
             display: flex;
-            justify-content: center; 
+            justify-content: center;
             min-height: 100vh;
         }
 
         .container {
             width: 100%;
-            max-width: 450px; 
-            background-color: var(--background); 
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); 
+            max-width: 450px;
+            background-color: var(--background);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
             padding: 0;
             margin: 0;
             display: flex;
             flex-direction: column;
-            position: relative; 
+            position: relative;
         }
 
         header {
-            background-color: var(--dark); 
+            background-color: var(--dark);
             color: var(--primary);
             padding: 15px;
             text-align: center;
@@ -52,14 +53,14 @@
             font-size: 1.2rem;
             display: flex;
             align-items: center;
-            justify-content: space-between; 
+            justify-content: space-between;
             gap: 10px;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-        
+
         #settings-btn {
             background: none;
             border: none;
@@ -72,51 +73,58 @@
 
         .main-content-area {
             padding: 15px;
-            overflow-y: auto; 
-            flex-grow: 1; 
+            overflow-y: auto;
+            flex-grow: 1;
         }
 
-        .screen { display: none; }
-        .screen.active { display: block; }
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
 
         .card {
-            background: var(--card); 
+            background: var(--card);
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 15px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-        .card h3 { 
+
+        .card h3 {
             border-bottom: 1px solid var(--primary);
             padding-bottom: 5px;
             margin-top: 0;
             color: var(--dark);
         }
 
-        h2 { 
-            margin-top: 0; 
-            font-size: 1.2rem; 
-            color: var(--dark); 
-            border-bottom: 2px solid var(--primary); 
-            padding-bottom: 5px; 
+        h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--dark);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 5px;
         }
 
-        input[type="number"], input[type="text"] {
+        input[type="number"],
+        input[type="text"] {
             width: 100%;
             padding: 12px;
             margin: 8px 0;
-            border: 1px solid #ccc; 
+            border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
-            font-size: 16px; 
-            background-color: var(--white); 
+            font-size: 16px;
+            background-color: var(--white);
             color: var(--dark);
         }
 
         .btn {
             display: block;
             width: 85%;
-            margin: 10px auto; 
+            margin: 10px auto;
             padding: 12px;
             border: none;
             border-radius: 5px;
@@ -125,61 +133,83 @@
             cursor: pointer;
             text-align: center;
             -webkit-appearance: none;
-            color: white; 
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15); 
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
             transition: all 0.2s ease;
         }
+
         .btn:active {
             box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
             transform: translateY(1px);
         }
-        
-        .btn-primary { background-color: #435b6c; color: white; } 
-        .btn-action { background-color: var(--success); color: white; }
-        .btn-success { background-color: var(--success); color: white; } 
-        .btn-danger { background-color: var(--danger); color: white; }
-        .btn-warning { background-color: var(--primary); color: var(--dark); } 
-        
-        .btn-info-dark { 
-            background-color: var(--success); 
-            color: var(--white); 
-            border: 1px solid var(--success); 
+
+        .btn-primary {
+            background-color: #435b6c;
+            color: white;
         }
-        
+
+        .btn-action {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: var(--primary);
+            color: var(--dark);
+        }
+
+        .btn-info-dark {
+            background-color: var(--success);
+            color: var(--white);
+            border: 1px solid var(--success);
+        }
+
         #session-roster-list-setup .player-slot {
             padding: 5px 10px;
             margin: 3px;
             font-size: 0.85rem;
-            display: inline-block; 
-            color: var(--secondary); 
+            display: inline-block;
+            color: var(--secondary);
             background: var(--light) !important;
-            border: 1px solid #ccc; 
+            border: 1px solid #ccc;
         }
 
         .player-row {
             display: flex;
-            justify-content: space-between; 
+            justify-content: space-between;
             align-items: center;
             padding: 10px;
-            border-bottom: 1px solid #ddd; 
+            border-bottom: 1px solid #ddd;
             background: var(--card);
             border-radius: 4px;
             margin-bottom: 5px;
         }
-        
+
         .court-box {
             border: 1px solid var(--light);
             border-radius: 8px;
             margin-bottom: 15px;
             overflow: hidden;
         }
+
         .court-header {
-            background: var(--dark); 
-            color: var(--white); 
+            background: var(--dark);
+            color: var(--white);
             padding: 5px 10px;
             font-size: 0.9rem;
             font-weight: bold;
         }
+
         .court-players {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -187,16 +217,18 @@
             background: var(--card);
             gap: 10px;
         }
+
         .player-slot {
-            background: var(--light); 
+            background: var(--light);
             padding: 6px;
             border-radius: 4px;
             text-align: center;
             font-size: 0.9rem;
-            cursor: pointer; 
+            cursor: pointer;
             color: var(--dark);
             border: 3px solid transparent;
         }
+
         .player-slot.selected {
             border: 3px solid var(--swap-highlight);
             transform: scale(1.05);
@@ -211,11 +243,12 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.6); 
+            background-color: rgba(0, 0, 0, 0.6);
             display: none;
             justify-content: center;
             align-items: center;
         }
+
         .modal-content {
             background-color: var(--card);
             color: var(--dark);
@@ -223,33 +256,37 @@
             border-radius: 10px;
             width: 90%;
             max-width: 400px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             text-align: center;
         }
-        
+
         .modal-content ul {
             list-style: none;
             padding: 0;
             max-height: 300px;
             overflow-y: auto;
-            border: 1px solid #ccc; 
+            border: 1px solid #ccc;
             border-radius: 5px;
             margin-bottom: 15px;
             text-align: left;
         }
+
         .modal-content li {
             padding: 12px;
             cursor: pointer;
-            border-bottom: 1px solid #eee; 
+            border-bottom: 1px solid #eee;
         }
-        .modal-content li:hover { background-color: var(--light); }
+
+        .modal-content li:hover {
+            background-color: var(--light);
+        }
 
         #confirmModal .btn {
             width: 45%;
             display: inline-block;
             margin: 5px 2%;
         }
-        
+
         .log-card {
             background-color: var(--light);
             padding: 10px;
@@ -257,9 +294,10 @@
             margin-bottom: 10px;
             border: 1px solid #ccc;
         }
+
         .player-stat-row {
             display: flex;
-            justify-content: space-between; 
+            justify-content: space-between;
             align-items: center;
             padding: 8px;
             background: var(--card);
@@ -268,122 +306,122 @@
             border: 1px solid #eee;
         }
     </style>
-    
-<script>
-    // --- DATA ---
-    let clubRoster = [
-        { id: 2, name: "Alex" }, { id: 17, name: "Ali" }, { id: 19, name: "Barry" }, { id: 10, name: "Eva" }, 
-        { id: 14, name: "Maggie" }, { id: 20, name: "Mike" }, { id: 1, name: "Mitch" }, { id: 15, name: "Pradeep" },
-        { id: 12, name: "Prem" }, { id: 4, name: "Roger" }, { id: 6, name: "Seva" }, { id: 11, name: "Sherry" }, 
-        { id: 9, name: "Steve S" }, { id: 8, name: "Steve V" }, { id: 3, name: "Sudesh" }, { id: 5, name: "Tharma" }, 
-        { id: 7, name: "Tharsini" }, { id: 18, name: "Tzu" }, { id: 13, name: "Vincent" }, { id: 16, name: "Wilfred" }, 
-        { id: 21, name: "GUEST 1" }, { id: 22, name: "GUEST 2" }, { id: 23, name: "GUEST 3" }, { id: 24, name: "GUEST 4" }
-    ];
 
-    let sessionPlayers = []; 
-    let newArrivals = [];    
-    let numCourts = 3;       
-    let intervalDuration = 15; 
-    let currentIntervalCount = 0;
-    let checkInCounter = 0; 
+    <script>
+        // --- DATA ---
+        let clubRoster = [
+            { id: 2, name: "Alex" }, { id: 17, name: "Ali" }, { id: 19, name: "Barry" }, { id: 10, name: "Eva" },
+            { id: 14, name: "Maggie" }, { id: 20, name: "Mike" }, { id: 1, name: "Mitch" }, { id: 15, name: "Pradeep" },
+            { id: 12, name: "Prem" }, { id: 4, name: "Roger" }, { id: 6, name: "Seva" }, { id: 11, name: "Sherry" },
+            { id: 9, name: "Steve S" }, { id: 8, name: "Steve V" }, { id: 3, name: "Sudesh" }, { id: 5, name: "Tharma" },
+            { id: 7, name: "Tharsini" }, { id: 18, name: "Tzu" }, { id: 13, name: "Vincent" }, { id: 16, name: "Wilfred" },
+            { id: 21, name: "GUEST 1" }, { id: 22, name: "GUEST 2" }, { id: 23, name: "GUEST 3" }, { id: 24, name: "GUEST 4" }
+        ];
 
-    let lastScreen = 'screen-setup'; 
-    let currentPlaying = []; 
-    let currentSitting = []; 
-    let swapCandidate = null; // Stores {id, location}
-    let intervalHistory = []; 
-    let lastSessionHistory = null;
+        let sessionPlayers = [];
+        let newArrivals = [];
+        let numCourts = 3;
+        let intervalDuration = 15;
+        let currentIntervalCount = 0;
+        let checkInCounter = 0;
 
-    // --- HELPERS ---
-    function sortPlayersAlphabetical(a, b) {
-        const isGuestA = a.name.toUpperCase().startsWith("GUEST");
-        const isGuestB = b.name.toUpperCase().startsWith("GUEST");
-        if (isGuestA && !isGuestB) return 1; 
-        if (!isGuestA && isGuestB) return -1; 
-        return a.name.localeCompare(b.name); 
-    }
+        let lastScreen = 'screen-setup';
+        let currentPlaying = [];
+        let currentSitting = [];
+        let swapCandidate = null; // Stores {id, location}
+        let intervalHistory = [];
+        let lastSessionHistory = null;
 
-    function toggleBackgroundScroll(lock) {
-        document.body.style.overflowY = lock ? 'hidden' : 'auto'; 
-    }
+        // --- HELPERS ---
+        function sortPlayersAlphabetical(a, b) {
+            const isGuestA = a.name.toUpperCase().startsWith("GUEST");
+            const isGuestB = b.name.toUpperCase().startsWith("GUEST");
+            if (isGuestA && !isGuestB) return 1;
+            if (!isGuestA && isGuestB) return -1;
+            return a.name.localeCompare(b.name);
+        }
 
-    // --- NAVIGATION ---
-    function showRollCallScreen() {
-        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
-        document.getElementById('screen-roll-call').classList.add('active');
-        lastScreen = 'screen-roll-call'; 
-        renderSessionRoster();
-        renderAvailableRollCallPlayers();
-    }
+        function toggleBackgroundScroll(lock) {
+            document.body.style.overflowY = lock ? 'hidden' : 'auto';
+        }
 
-    function showSetupScreen() {
-        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
-        document.getElementById('screen-setup').classList.add('active');
-        lastScreen = 'screen-setup'; 
-        renderSessionRoster(); 
-        renderLastSessionHistory(); 
-    }
+        // --- NAVIGATION ---
+        function showRollCallScreen() {
+            document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-roll-call').classList.add('active');
+            lastScreen = 'screen-roll-call';
+            renderSessionRoster();
+            renderAvailableRollCallPlayers();
+        }
 
-    function showSessionScreen() {
-        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
-        document.getElementById('screen-session').classList.add('active');
-        lastScreen = 'screen-session';
-    }
+        function showSetupScreen() {
+            document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-setup').classList.add('active');
+            lastScreen = 'screen-setup';
+            renderSessionRoster();
+            renderLastSessionHistory();
+        }
 
-    function showSettingsScreen() {
-        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
-        document.getElementById('screen-settings').classList.add('active');
-        document.getElementById('court-count-setting').value = numCourts;
-        document.getElementById('interval-mins-setting').value = intervalDuration;
-        renderClubRosterManagement();
-    }
+        function showSessionScreen() {
+            document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-session').classList.add('active');
+            lastScreen = 'screen-session';
+        }
 
-    function saveSettingsAndReturn() {
-        numCourts = parseInt(document.getElementById('court-count-setting').value) || 3;
-        intervalDuration = parseInt(document.getElementById('interval-mins-setting').value) || 15;
-        document.getElementById('screen-settings').classList.remove('active');
-        document.getElementById(lastScreen).classList.add('active');
-    }
+        function showSettingsScreen() {
+            document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-settings').classList.add('active');
+            document.getElementById('court-count-setting').value = numCourts;
+            document.getElementById('interval-mins-setting').value = intervalDuration;
+            renderClubRosterManagement();
+        }
 
-    // --- UI RENDERING ---
-    function renderSessionRoster() {
-        const listRollCall = document.getElementById('session-roster-list');
-        const listSetup = document.getElementById('session-roster-list-setup');
-        const rollCallHeader = document.getElementById('roll-call-roster-header');
-        
-        const displayPlayers = [...sessionPlayers].sort((a, b) => a.checkInIndex - b.checkInIndex); 
-        if (rollCallHeader) rollCallHeader.innerText = `Checked-In: ${sessionPlayers.length} Players`;
+        function saveSettingsAndReturn() {
+            numCourts = parseInt(document.getElementById('court-count-setting').value) || 3;
+            intervalDuration = parseInt(document.getElementById('interval-mins-setting').value) || 15;
+            document.getElementById('screen-settings').classList.remove('active');
+            document.getElementById(lastScreen).classList.add('active');
+        }
 
-        let rosterHTML = displayPlayers.map(p => `
+        // --- UI RENDERING ---
+        function renderSessionRoster() {
+            const listRollCall = document.getElementById('session-roster-list');
+            const listSetup = document.getElementById('session-roster-list-setup');
+            const rollCallHeader = document.getElementById('roll-call-roster-header');
+
+            const displayPlayers = [...sessionPlayers].sort((a, b) => a.checkInIndex - b.checkInIndex);
+            if (rollCallHeader) rollCallHeader.innerText = `Checked-In: ${sessionPlayers.length} Players`;
+
+            let rosterHTML = displayPlayers.map(p => `
             <div class="player-row">
                 <span>${p.name}</span>
                 <button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="removePlayerFromSession(${p.id})">✕</button>
             </div>
         `).join('');
 
-        if (listRollCall) listRollCall.innerHTML = rosterHTML || "<small>No players checked in yet.</small>";
-        if (listSetup) {
-            const summaryHTML = displayPlayers.map(p => `<div class="player-slot">${p.name}</div>`).join('');
-            listSetup.innerHTML = (sessionPlayers.length > 0) ? summaryHTML : "<small>Click 'Roll Call' to check in players.</small>";
-            const header = listSetup.closest('.card').querySelector('h3');
-            if (header) header.innerText = `Checked-In Roster: (${sessionPlayers.length} Players)`;
-        }
-    }
-
-    function renderLastSessionHistory() {
-        const card = document.getElementById('last-session-history-card');
-        const container = document.getElementById('last-session-history-content');
-        
-        if (!lastSessionHistory || lastSessionHistory.length === 0) {
-            card.style.display = 'none';
-            return;
+            if (listRollCall) listRollCall.innerHTML = rosterHTML || "<small>No players checked in yet.</small>";
+            if (listSetup) {
+                const summaryHTML = displayPlayers.map(p => `<div class="player-slot">${p.name}</div>`).join('');
+                listSetup.innerHTML = (sessionPlayers.length > 0) ? summaryHTML : "<small>Click 'Roll Call' to check in players.</small>";
+                const header = listSetup.closest('.card').querySelector('h3');
+                if (header) header.innerText = `Checked-In Roster: (${sessionPlayers.length} Players)`;
+            }
         }
 
-        card.style.display = 'block';
-        let historyHTML = '';
-        
-        [...lastSessionHistory].reverse().forEach(log => {
-            historyHTML += `<div class="log-card">
+        function renderLastSessionHistory() {
+            const card = document.getElementById('last-session-history-card');
+            const container = document.getElementById('last-session-history-content');
+
+            if (!lastSessionHistory || lastSessionHistory.length === 0) {
+                card.style.display = 'none';
+                return;
+            }
+
+            card.style.display = 'block';
+            let historyHTML = '';
+
+            [...lastSessionHistory].reverse().forEach(log => {
+                historyHTML += `<div class="log-card">
                 <strong style="font-size: 1rem; color: var(--dark); border-bottom: 1px dashed #ccc; display: block; padding-bottom: 5px;">Interval ${log.interval}:</strong>
                 <div style="font-size: 0.9rem; padding-top: 5px;">
                     ${log.courts.map(court => `<p style="margin: 3px 0; padding-left: 5px;"><strong>Court ${court.court}:</strong> ${court.players.join(', ')}</p>`).join('')}
@@ -392,304 +430,304 @@
                     </p>
                 </div>
             </div>`;
-        });
-        container.innerHTML = historyHTML;
-    }
-
-    function clearSavedHistory() {
-        localStorage.removeItem('mff_last_session_history');
-        lastSessionHistory = null;
-        document.getElementById('last-session-history-card').style.display = 'none';
-    }
-
-    // --- BRAIN LOGIC ---
-    function calculatePairingScore(playerAId, playerBId) {
-        let count = 0;
-        const playerAName = sessionPlayers.find(p => p.id === playerAId)?.name;
-        const playerBName = sessionPlayers.find(p => p.id === playerBId)?.name;
-
-        intervalHistory.forEach(log => {
-            log.courts.forEach(court => {
-                if (court.players.includes(playerAName) && court.players.includes(playerBName)) {
-                    count++;
-                }
             });
-        });
-        return count === 0 ? 0 : Math.pow(2, count);
-    }
-
-    function generateAssignments() {
-        currentIntervalCount++;
-        
-        if (newArrivals.length > 0) {
-            const maxSits = sessionPlayers.length > 0 ? Math.max(...sessionPlayers.map(p => p.sits)) : 0;
-            newArrivals.forEach(p => p.sits = maxSits + 1);
-            sessionPlayers.push(...newArrivals);
-            newArrivals = [];
-            renderNewArrivals();
+            container.innerHTML = historyHTML;
         }
 
-        const activeCourts = Math.floor(sessionPlayers.length / 4);
-        const playingSpots = activeCourts * 4;
-
-        const lastSittingNames = intervalHistory.length > 0 ? intervalHistory[intervalHistory.length-1].sitting : [];
-        sessionPlayers.forEach(p => p.mustPlay = lastSittingNames.includes(p.name));
-
-        for (let i = sessionPlayers.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [sessionPlayers[i], sessionPlayers[j]] = [sessionPlayers[j], sessionPlayers[i]];
+        function clearSavedHistory() {
+            localStorage.removeItem('mff_last_session_history');
+            lastSessionHistory = null;
+            document.getElementById('last-session-history-card').style.display = 'none';
         }
-        sessionPlayers.sort((a, b) => {
-            if (a.mustPlay && !b.mustPlay) return -1;
-            if (!a.mustPlay && b.mustPlay) return 1;
-            return b.sits - a.sits;
-        });
 
-        let pool = sessionPlayers.slice(0, playingSpots);
-        let sitting = sessionPlayers.slice(playingSpots);
-        let assignments = [];
+        // --- BRAIN LOGIC ---
+        function calculatePairingScore(playerAId, playerBId) {
+            let count = 0;
+            const playerAName = sessionPlayers.find(p => p.id === playerAId)?.name;
+            const playerBName = sessionPlayers.find(p => p.id === playerBId)?.name;
 
-        for (let c = 1; c <= activeCourts; c++) {
-            let court = [pool.shift()];
-            for (let i = 0; i < 3; i++) {
-                let bestIdx = 0;
-                let lowestScore = Infinity;
-                pool.forEach((cand, idx) => {
-                    let score = court.reduce((sum, p) => sum + calculatePairingScore(p.id, cand.id), 0);
-                    if (score < lowestScore) { lowestScore = score; bestIdx = idx; }
+            intervalHistory.forEach(log => {
+                log.courts.forEach(court => {
+                    if (court.players.includes(playerAName) && court.players.includes(playerBName)) {
+                        count++;
+                    }
                 });
-                court.push(pool.splice(bestIdx, 1)[0]);
-            }
-            assignments.push({ court: c, players: court.map(p => p.name), playerObjs: court });
-        }
-
-        currentPlaying = assignments.flatMap(a => a.playerObjs);
-        currentSitting = sitting;
-        
-        const playingIds = new Set(currentPlaying.map(p => p.id));
-        sessionPlayers.forEach(p => {
-            if (playingIds.has(p.id)) p.sits = 0;
-            else p.sits++;
-        });
-
-        updateIntervalHistory();
-        renderSessionUI(activeCourts);
-    }
-
-    function updateIntervalHistory() {
-        const activeCourts = Math.floor(currentPlaying.length / 4);
-        let courtData = [];
-        for (let i = 0; i < activeCourts; i++) {
-            courtData.push({
-                court: i + 1,
-                players: currentPlaying.slice(i * 4, (i + 1) * 4).map(p => p.name)
             });
+            return count === 0 ? 0 : Math.pow(2, count);
         }
 
-        const historyEntry = {
-            interval: currentIntervalCount,
-            courts: courtData,
-            sitting: currentSitting.map(p => p.name)
-        };
+        function generateAssignments() {
+            currentIntervalCount++;
 
-        if (intervalHistory.length < currentIntervalCount) {
-            intervalHistory.push(historyEntry);
-        } else {
-            intervalHistory[currentIntervalCount - 1] = historyEntry;
-        }
-    }
-
-    // --- SWAP LOGIC ---
-    function startSwapSelect(id, location) {
-        const slot = document.getElementById(`player-${id}`);
-        
-        // If clicking the same player again, deselect
-        if (swapCandidate && swapCandidate.id === id) {
-            slot.classList.remove('selected');
-            swapCandidate = null;
-            return;
-        }
-
-        // First selection
-        if (!swapCandidate) {
-            swapCandidate = { id, location };
-            slot.classList.add('selected');
-        } else {
-            // Second selection: Execute Swap
-            executeSwap(swapCandidate, { id, location });
-            swapCandidate = null;
-        }
-    }
-
-    function executeSwap(cand1, cand2) {
-        let p1, p2, idx1, idx2;
-
-        // Find P1
-        if (cand1.location === 'playing') {
-            idx1 = currentPlaying.findIndex(p => p.id === cand1.id);
-            p1 = currentPlaying[idx1];
-        } else {
-            idx1 = currentSitting.findIndex(p => p.id === cand1.id);
-            p1 = currentSitting[idx1];
-        }
-
-        // Find P2
-        if (cand2.location === 'playing') {
-            idx2 = currentPlaying.findIndex(p => p.id === cand2.id);
-            p2 = currentPlaying[idx2];
-        } else {
-            idx2 = currentSitting.findIndex(p => p.id === cand2.id);
-            p2 = currentSitting[idx2];
-        }
-
-        // Perform Swap across arrays
-        if (cand1.location === 'playing' && cand2.location === 'playing') {
-            [currentPlaying[idx1], currentPlaying[idx2]] = [currentPlaying[idx2], currentPlaying[idx1]];
-        } else if (cand1.location === 'sitting' && cand2.location === 'sitting') {
-            [currentSitting[idx1], currentSitting[idx2]] = [currentSitting[idx2], currentSitting[idx1]];
-        } else if (cand1.location === 'playing' && cand2.location === 'sitting') {
-            currentPlaying[idx1] = p2;
-            currentSitting[idx2] = p1;
-            p1.sits++; p2.sits = 0; // Adjust sit counts
-        } else {
-            currentSitting[idx1] = p2;
-            currentPlaying[idx2] = p1;
-            p1.sits = 0; p2.sits++; // Adjust sit counts
-        }
-
-        updateIntervalHistory();
-        renderSessionUI(Math.floor(currentPlaying.length / 4));
-    }
-
-    // --- MODALS & ALERTS ---
-    function showConfirmation(action) {
-        document.getElementById('confirmMessage').innerText = action === 'nextInterval' ? "Confirm Reshuffle for next interval?" : "End Session? This will reset all data.";
-        document.getElementById('confirmYes').onclick = () => {
-            document.getElementById('confirmModal').style.display = 'none';
-            if (action === 'nextInterval') {
-                generateAssignments();
-            } else {
-                if (intervalHistory.length > 0) {
-                    localStorage.setItem('mff_last_session_history', JSON.stringify(intervalHistory));
-                }
-                location.reload();
+            if (newArrivals.length > 0) {
+                const maxSits = sessionPlayers.length > 0 ? Math.max(...sessionPlayers.map(p => p.sits)) : 0;
+                newArrivals.forEach(p => p.sits = maxSits + 1);
+                sessionPlayers.push(...newArrivals);
+                newArrivals = [];
+                renderNewArrivals();
             }
-        };
-        document.getElementById('confirmModal').style.display = 'flex';
-    }
 
-    function showSessionInfoModal() {
-        toggleBackgroundScroll(true);
-        document.getElementById('sessionInfoModal').style.display = 'flex';
-        document.getElementById('interval-count-display').innerText = currentIntervalCount;
+            const activeCourts = Math.floor(sessionPlayers.length / 4);
+            const playingSpots = activeCourts * 4;
 
-        const statsContainer = document.getElementById('player-stats-list');
-        let statsHTML = `<div class="log-card">`;
-        sessionPlayers.sort((a,b) => b.sits - a.sits).forEach(p => {
-            statsHTML += `<div class="player-stat-row"><span style="font-weight:bold;">${p.name}</span><span>Sits: <strong>${p.sits}</strong></span></div>`;
-        });
-        statsHTML += `</div>`;
-        statsContainer.innerHTML = statsHTML;
+            const lastSittingNames = intervalHistory.length > 0 ? intervalHistory[intervalHistory.length - 1].sitting : [];
+            sessionPlayers.forEach(p => p.mustPlay = lastSittingNames.includes(p.name));
 
-        const historyContainer = document.getElementById('interval-history-log');
-        let historyHTML = '';
-        [...intervalHistory].reverse().forEach(log => {
-            historyHTML += `<div class="log-card"><strong>Interval ${log.interval}:</strong>${log.courts.map(c => `<p>Court ${c.court}: ${c.players.join(', ')}</p>`).join('')}<p style="font-style:italic;">Sat Out: ${log.sitting.join(', ') || 'None'}</p></div>`;
-        });
-        historyContainer.innerHTML = historyHTML || "<p>No history yet.</p>";
-    }
+            for (let i = sessionPlayers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [sessionPlayers[i], sessionPlayers[j]] = [sessionPlayers[j], sessionPlayers[i]];
+            }
+            sessionPlayers.sort((a, b) => {
+                if (a.mustPlay && !b.mustPlay) return -1;
+                if (!a.mustPlay && b.mustPlay) return 1;
+                return b.sits - a.sits;
+            });
 
-    function renderSessionUI(active) {
-        renderCourts(currentPlaying, active);
-        renderBench(currentSitting);
-    }
+            let pool = sessionPlayers.slice(0, playingSpots);
+            let sitting = sessionPlayers.slice(playingSpots);
+            let assignments = [];
 
-    function renderCourts(list, active) {
-        const container = document.getElementById('courts-container');
-        container.innerHTML = "";
-        for (let i = 1; i <= numCourts; i++) {
-            const isFilled = i <= active;
-            const p = isFilled ? list.slice((i-1)*4, i*4) : null;
-            container.innerHTML += `
+            for (let c = 1; c <= activeCourts; c++) {
+                let court = [pool.shift()];
+                for (let i = 0; i < 3; i++) {
+                    let bestIdx = 0;
+                    let lowestScore = Infinity;
+                    pool.forEach((cand, idx) => {
+                        let score = court.reduce((sum, p) => sum + calculatePairingScore(p.id, cand.id), 0);
+                        if (score < lowestScore) { lowestScore = score; bestIdx = idx; }
+                    });
+                    court.push(pool.splice(bestIdx, 1)[0]);
+                }
+                assignments.push({ court: c, players: court.map(p => p.name), playerObjs: court });
+            }
+
+            currentPlaying = assignments.flatMap(a => a.playerObjs);
+            currentSitting = sitting;
+
+            const playingIds = new Set(currentPlaying.map(p => p.id));
+            sessionPlayers.forEach(p => {
+                if (!playingIds.has(p.id)) p.sits++;
+            });
+
+            updateIntervalHistory();
+            renderSessionUI(activeCourts);
+        }
+
+        function updateIntervalHistory() {
+            const activeCourts = Math.floor(currentPlaying.length / 4);
+            let courtData = [];
+            for (let i = 0; i < activeCourts; i++) {
+                courtData.push({
+                    court: i + 1,
+                    players: currentPlaying.slice(i * 4, (i + 1) * 4).map(p => p.name)
+                });
+            }
+
+            const historyEntry = {
+                interval: currentIntervalCount,
+                courts: courtData,
+                sitting: currentSitting.map(p => p.name)
+            };
+
+            if (intervalHistory.length < currentIntervalCount) {
+                intervalHistory.push(historyEntry);
+            } else {
+                intervalHistory[currentIntervalCount - 1] = historyEntry;
+            }
+        }
+
+        // --- SWAP LOGIC ---
+        function startSwapSelect(id, location) {
+            const slot = document.getElementById(`player-${id}`);
+
+            // If clicking the same player again, deselect
+            if (swapCandidate && swapCandidate.id === id) {
+                slot.classList.remove('selected');
+                swapCandidate = null;
+                return;
+            }
+
+            // First selection
+            if (!swapCandidate) {
+                swapCandidate = { id, location };
+                slot.classList.add('selected');
+            } else {
+                // Second selection: Execute Swap
+                executeSwap(swapCandidate, { id, location });
+                swapCandidate = null;
+            }
+        }
+
+        function executeSwap(cand1, cand2) {
+            let p1, p2, idx1, idx2;
+
+            // Find P1
+            if (cand1.location === 'playing') {
+                idx1 = currentPlaying.findIndex(p => p.id === cand1.id);
+                p1 = currentPlaying[idx1];
+            } else {
+                idx1 = currentSitting.findIndex(p => p.id === cand1.id);
+                p1 = currentSitting[idx1];
+            }
+
+            // Find P2
+            if (cand2.location === 'playing') {
+                idx2 = currentPlaying.findIndex(p => p.id === cand2.id);
+                p2 = currentPlaying[idx2];
+            } else {
+                idx2 = currentSitting.findIndex(p => p.id === cand2.id);
+                p2 = currentSitting[idx2];
+            }
+
+            // Perform Swap across arrays
+            if (cand1.location === 'playing' && cand2.location === 'playing') {
+                [currentPlaying[idx1], currentPlaying[idx2]] = [currentPlaying[idx2], currentPlaying[idx1]];
+            } else if (cand1.location === 'sitting' && cand2.location === 'sitting') {
+                [currentSitting[idx1], currentSitting[idx2]] = [currentSitting[idx2], currentSitting[idx1]];
+            } else if (cand1.location === 'playing' && cand2.location === 'sitting') {
+                currentPlaying[idx1] = p2;
+                currentSitting[idx2] = p1;
+                p1.sits++; p2.sits--; // Adjust sit counts: p1 sits (add), p2 plays (remove)
+            } else {
+                currentSitting[idx1] = p2;
+                currentPlaying[idx2] = p1;
+                p1.sits--; p2.sits++; // Adjust sit counts: p1 plays (remove), p2 sits (add)
+            }
+
+            updateIntervalHistory();
+            renderSessionUI(Math.floor(currentPlaying.length / 4));
+        }
+
+        // --- MODALS & ALERTS ---
+        function showConfirmation(action) {
+            document.getElementById('confirmMessage').innerText = action === 'nextInterval' ? "Confirm Reshuffle for next interval?" : "End Session? This will reset all data.";
+            document.getElementById('confirmYes').onclick = () => {
+                document.getElementById('confirmModal').style.display = 'none';
+                if (action === 'nextInterval') {
+                    generateAssignments();
+                } else {
+                    if (intervalHistory.length > 0) {
+                        localStorage.setItem('mff_last_session_history', JSON.stringify(intervalHistory));
+                    }
+                    location.reload();
+                }
+            };
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+
+        function showSessionInfoModal() {
+            toggleBackgroundScroll(true);
+            document.getElementById('sessionInfoModal').style.display = 'flex';
+            document.getElementById('interval-count-display').innerText = currentIntervalCount;
+
+            const statsContainer = document.getElementById('player-stats-list');
+            let statsHTML = `<div class="log-card">`;
+            sessionPlayers.sort((a, b) => b.sits - a.sits).forEach(p => {
+                statsHTML += `<div class="player-stat-row"><span style="font-weight:bold;">${p.name}</span><span>Sits: <strong>${p.sits}</strong></span></div>`;
+            });
+            statsHTML += `</div>`;
+            statsContainer.innerHTML = statsHTML;
+
+            const historyContainer = document.getElementById('interval-history-log');
+            let historyHTML = '';
+            [...intervalHistory].reverse().forEach(log => {
+                historyHTML += `<div class="log-card"><strong>Interval ${log.interval}:</strong>${log.courts.map(c => `<p>Court ${c.court}: ${c.players.join(', ')}</p>`).join('')}<p style="font-style:italic;">Sat Out: ${log.sitting.join(', ') || 'None'}</p></div>`;
+            });
+            historyContainer.innerHTML = historyHTML || "<p>No history yet.</p>";
+        }
+
+        function renderSessionUI(active) {
+            renderCourts(currentPlaying, active);
+            renderBench(currentSitting);
+        }
+
+        function renderCourts(list, active) {
+            const container = document.getElementById('courts-container');
+            container.innerHTML = "";
+            for (let i = 1; i <= numCourts; i++) {
+                const isFilled = i <= active;
+                const p = isFilled ? list.slice((i - 1) * 4, i * 4) : null;
+                container.innerHTML += `
                 <div class="court-box">
                     <div class="court-header">Court ${i} ${isFilled ? '' : '- EMPTY'}</div>
                     <div class="court-players">
                         ${isFilled ? p.map(player => `<div class="player-slot" id="player-${player.id}" onclick="startSwapSelect(${player.id}, 'playing')">${player.name}</div>`).join('') : '<div class="player-slot">Open</div><div class="player-slot">Open</div><div class="player-slot">Open</div><div class="player-slot">Open</div>'}
                     </div>
                 </div>`;
-        }
-    }
-
-    function renderBench(list) {
-        document.getElementById('bench-container').innerHTML = list.length ? list.map(p => `<div class="player-slot" id="player-${p.id}" onclick="startSwapSelect(${p.id}, 'sitting')">${p.name} <small>(Sits: ${p.sits})</small></div>`).join('') : "<small>No one sitting.</small>";
-    }
-
-    function renderNewArrivals() {
-        const container = document.getElementById('new-arrivals-container');
-        container.innerHTML = newArrivals.length ? newArrivals.map(p => `<div class="player-slot" style="border:1px solid var(--primary);">${p.name}</div>`).join('') : "<small>No new players waiting.</small>";
-    }
-
-    function renderClubRosterManagement() {
-        const list = document.getElementById('club-roster-management-list');
-        list.innerHTML = [...clubRoster].sort(sortPlayersAlphabetical).map(p => `<div class="player-row" style="background:var(--card); border:1px solid #ccc; justify-content:start;"><span>${p.name}</span></div>`).join('');
-    }
-
-    function renderAvailableRollCallPlayers() {
-        const container = document.getElementById('roll-call-list-container');
-        const addedIds = new Set(sessionPlayers.map(p => p.id));
-        const available = clubRoster.filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
-        container.innerHTML = available.map(p => `<div class="player-row" style="cursor:pointer; background:var(--success); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${p.id})">${p.name}</div>`).join('');
-    }
-
-    function addPlayerToSession(id) {
-        const p = clubRoster.find(x => x.id === id);
-        if (p) { 
-            const newP = { ...p, sits: 0, checkInIndex: ++checkInCounter };
-            if (document.getElementById('screen-session').classList.contains('active')) {
-                newArrivals.push(newP); renderNewArrivals();
-            } else {
-                sessionPlayers.push(newP); renderSessionRoster(); renderAvailableRollCallPlayers();
             }
         }
-    }
 
-    function removePlayerFromSession(id) {
-        sessionPlayers = sessionPlayers.filter(p => p.id !== id);
-        newArrivals = newArrivals.filter(p => p.id !== id);
-        renderSessionRoster(); renderAvailableRollCallPlayers(); renderNewArrivals();
-    }
+        function renderBench(list) {
+            document.getElementById('bench-container').innerHTML = list.length ? list.map(p => `<div class="player-slot" id="player-${p.id}" onclick="startSwapSelect(${p.id}, 'sitting')">${p.name} <small>(Sits: ${p.sits})</small></div>`).join('') : "<small>No one sitting.</small>";
+        }
 
-    function startSession() {
-        if (sessionPlayers.length < 7) { alert("Need 7+ players."); return; }
-        showSessionScreen(); generateAssignments();
-    }
+        function renderNewArrivals() {
+            const container = document.getElementById('new-arrivals-container');
+            container.innerHTML = newArrivals.length ? newArrivals.map(p => `<div class="player-slot" style="border:1px solid var(--primary);">${p.name}</div>`).join('') : "<small>No new players waiting.</small>";
+        }
 
-    function showAddPlayerModal() {
-        toggleBackgroundScroll(true);
-        const addedIds = new Set(sessionPlayers.map(p => p.id).concat(newArrivals.map(p => p.id)));
-        const available = clubRoster.filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
-        document.getElementById('add-player-list').innerHTML = available.map(p => `<li onclick="addPlayerToSession(${p.id}); document.getElementById('addPlayerModal').style.display='none'; toggleBackgroundScroll(false);">${p.name}</li>`).join('') || "<li>All players checked in</li>";
-        document.getElementById('addPlayerModal').style.display = 'flex';
-    }
+        function renderClubRosterManagement() {
+            const list = document.getElementById('club-roster-management-list');
+            list.innerHTML = [...clubRoster].sort(sortPlayersAlphabetical).map(p => `<div class="player-row" style="background:var(--card); border:1px solid #ccc; justify-content:start;"><span>${p.name}</span></div>`).join('');
+        }
 
-    function showRemovePlayerModal() {
-        toggleBackgroundScroll(true);
-        const all = sessionPlayers.concat(newArrivals).sort(sortPlayersAlphabetical);
-        document.getElementById('remove-player-list').innerHTML = all.map(p => `<li onclick="removePlayerFromSession(${p.id}); document.getElementById('removePlayerModal').style.display='none'; toggleBackgroundScroll(false);">${p.name}</li>`).join('') || "<li>No players to remove</li>";
-        document.getElementById('removePlayerModal').style.display = 'flex';
-    }
+        function renderAvailableRollCallPlayers() {
+            const container = document.getElementById('roll-call-list-container');
+            const addedIds = new Set(sessionPlayers.map(p => p.id));
+            const available = clubRoster.filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
+            container.innerHTML = available.map(p => `<div class="player-row" style="cursor:pointer; background:var(--success); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${p.id})">${p.name}</div>`).join('');
+        }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const saved = localStorage.getItem('mff_last_session_history');
-        if (saved) { lastSessionHistory = JSON.parse(saved); }
-        
-        const display = document.getElementById('club-roster-display');
-        display.textContent = [...clubRoster].sort(sortPlayersAlphabetical).map(p => p.name).join(', ');
-        renderSessionRoster();
-        renderLastSessionHistory();
-    });
-</script>
+        function addPlayerToSession(id) {
+            const p = clubRoster.find(x => x.id === id);
+            if (p) {
+                const newP = { ...p, sits: 0, checkInIndex: ++checkInCounter };
+                if (document.getElementById('screen-session').classList.contains('active')) {
+                    newArrivals.push(newP); renderNewArrivals();
+                } else {
+                    sessionPlayers.push(newP); renderSessionRoster(); renderAvailableRollCallPlayers();
+                }
+            }
+        }
+
+        function removePlayerFromSession(id) {
+            sessionPlayers = sessionPlayers.filter(p => p.id !== id);
+            newArrivals = newArrivals.filter(p => p.id !== id);
+            renderSessionRoster(); renderAvailableRollCallPlayers(); renderNewArrivals();
+        }
+
+        function startSession() {
+            if (sessionPlayers.length < 7) { alert("Need 7+ players."); return; }
+            showSessionScreen(); generateAssignments();
+        }
+
+        function showAddPlayerModal() {
+            toggleBackgroundScroll(true);
+            const addedIds = new Set(sessionPlayers.map(p => p.id).concat(newArrivals.map(p => p.id)));
+            const available = clubRoster.filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
+            document.getElementById('add-player-list').innerHTML = available.map(p => `<li onclick="addPlayerToSession(${p.id}); document.getElementById('addPlayerModal').style.display='none'; toggleBackgroundScroll(false);">${p.name}</li>`).join('') || "<li>All players checked in</li>";
+            document.getElementById('addPlayerModal').style.display = 'flex';
+        }
+
+        function showRemovePlayerModal() {
+            toggleBackgroundScroll(true);
+            const all = sessionPlayers.concat(newArrivals).sort(sortPlayersAlphabetical);
+            document.getElementById('remove-player-list').innerHTML = all.map(p => `<li onclick="removePlayerFromSession(${p.id}); document.getElementById('removePlayerModal').style.display='none'; toggleBackgroundScroll(false);">${p.name}</li>`).join('') || "<li>No players to remove</li>";
+            document.getElementById('removePlayerModal').style.display = 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('mff_last_session_history');
+            if (saved) { lastSessionHistory = JSON.parse(saved); }
+
+            const display = document.getElementById('club-roster-display');
+            display.textContent = [...clubRoster].sort(sortPlayersAlphabetical).map(p => p.name).join(', ');
+            renderSessionRoster();
+            renderLastSessionHistory();
+        });
+    </script>
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -709,7 +747,8 @@
                 <div class="card" id="last-session-history-card" style="display:none; margin-top: 15px;">
                     <h3>Previous Session Log</h3>
                     <div id="last-session-history-content"></div>
-                    <button class="btn btn-danger" onclick="clearSavedHistory()" style="margin-top: 10px;">Clear Log</button>
+                    <button class="btn btn-danger" onclick="clearSavedHistory()" style="margin-top: 10px;">Clear
+                        Log</button>
                 </div>
 
                 <div style="margin-top: 15px; border-top: 1px solid #ccc; padding-top: 10px;">
@@ -722,7 +761,8 @@
                 <div class="card">
                     <h2>Roll Call: Check-In Players</h2>
                     <h3 style="margin-top: 5px; color: var(--secondary);">Available Players: Tap to Check In</h3>
-                    <div id="roll-call-list-container" style="max-height: 250px; overflow-y: auto; padding: 5px; border: 1px solid #eee;"></div>
+                    <div id="roll-call-list-container"
+                        style="max-height: 250px; overflow-y: auto; padding: 5px; border: 1px solid #eee;"></div>
                     <hr>
                     <h3 id="roll-call-roster-header">Checked-In: 0 Players</h3>
                     <div id="session-roster-list"></div>
@@ -731,7 +771,8 @@
             </div>
 
             <div id="screen-session" class="screen">
-                <button class="btn btn-action" onclick="showConfirmation('nextInterval')">Next Interval / Reshuffle</button>
+                <button class="btn btn-action" onclick="showConfirmation('nextInterval')">Next Interval /
+                    Reshuffle</button>
                 <hr>
                 <div id="courts-container"></div>
                 <button class="btn btn-info-dark" onclick="showSessionInfoModal()">📊 Session Info</button>
@@ -764,12 +805,43 @@
                 </div>
                 <button class="btn btn-action" onclick="saveSettingsAndReturn()">Done</button>
             </div>
-        </div> 
-    </div> 
+        </div>
+    </div>
 
-    <div id="addPlayerModal" class="modal"><div class="modal-content"><h2>Select Player to Add</h2><ul id="add-player-list"></ul><button class="btn btn-danger" onclick="document.getElementById('addPlayerModal').style.display='none'; toggleBackgroundScroll(false);">Cancel</button></div></div>
-    <div id="removePlayerModal" class="modal"><div class="modal-content"><h2>Select Player to Remove</h2><ul id="remove-player-list"></ul><button class="btn btn-danger" onclick="document.getElementById('removePlayerModal').style.display='none'; toggleBackgroundScroll(false);">Cancel</button></div></div>
-    <div id="confirmModal" class="modal"><div class="modal-content"><p id="confirmMessage"></p><button class="btn btn-success" id="confirmYes">Yes</button><button class="btn btn-danger" onclick="document.getElementById('confirmModal').style.display='none'">No</button></div></div>
-    <div id="sessionInfoModal" class="modal"><div class="modal-content" style="text-align:left; max-height:80vh; overflow-y:auto;"><h2>📊 Session Info</h2><p>Interval: <strong id="interval-count-display"></strong></p><hr><h3>Sit Counts</h3><div id="player-stats-list"></div><hr><h3>Log</h3><div id="interval-history-log"></div><button class="btn btn-primary" onclick="document.getElementById('sessionInfoModal').style.display='none'; toggleBackgroundScroll(false);">Close</button></div></div>
+    <div id="addPlayerModal" class="modal">
+        <div class="modal-content">
+            <h2>Select Player to Add</h2>
+            <ul id="add-player-list"></ul><button class="btn btn-danger"
+                onclick="document.getElementById('addPlayerModal').style.display='none'; toggleBackgroundScroll(false);">Cancel</button>
+        </div>
+    </div>
+    <div id="removePlayerModal" class="modal">
+        <div class="modal-content">
+            <h2>Select Player to Remove</h2>
+            <ul id="remove-player-list"></ul><button class="btn btn-danger"
+                onclick="document.getElementById('removePlayerModal').style.display='none'; toggleBackgroundScroll(false);">Cancel</button>
+        </div>
+    </div>
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <p id="confirmMessage"></p><button class="btn btn-success" id="confirmYes">Yes</button><button
+                class="btn btn-danger"
+                onclick="document.getElementById('confirmModal').style.display='none'">No</button>
+        </div>
+    </div>
+    <div id="sessionInfoModal" class="modal">
+        <div class="modal-content" style="text-align:left; max-height:80vh; overflow-y:auto;">
+            <h2>📊 Session Info</h2>
+            <p>Interval: <strong id="interval-count-display"></strong></p>
+            <hr>
+            <h3>Sit Counts</h3>
+            <div id="player-stats-list"></div>
+            <hr>
+            <h3>Log</h3>
+            <div id="interval-history-log"></div><button class="btn btn-primary"
+                onclick="document.getElementById('sessionInfoModal').style.display='none'; toggleBackgroundScroll(false);">Close</button>
+        </div>
+    </div>
 </body>
+
 </html>
