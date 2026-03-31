@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mitch's App V69</title>
+    <title>Mitch's App V70</title>
     <style>
         :root {
             --primary: #f1c40f;          
@@ -268,7 +268,7 @@
             border: 1px solid #eee;
         }
     
-    /* ── V69 Copyright Notice Modal ─────────────────────────── */
+    /* ── V70 Copyright Notice Modal ─────────────────────────── */
     #copyrightOverlay {
         display: flex;
         position: fixed;
@@ -314,6 +314,32 @@
     }
     #copyrightAckBtn:hover { background: #1a252f; }
     /* ─────────────────────────────────────────────────────────── */
+
+    /* ── V70 Settings Menu ──────────────────────────────── */
+    .settings-menu-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 18px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--dark);
+        background: #e8eaf0;
+        box-shadow: 4px 4px 8px rgba(0,0,0,0.18), -2px -2px 6px rgba(255,255,255,0.85);
+        border: none;
+        transition: box-shadow 0.1s ease, transform 0.1s ease;
+        user-select: none;
+    }
+    .settings-menu-item:active {
+        box-shadow: inset 2px 2px 5px rgba(0,0,0,0.18), inset -1px -1px 4px rgba(255,255,255,0.7);
+        transform: translateY(1px);
+    }
+    .menu-arrow { color: var(--secondary); font-size: 1.2rem; font-weight: bold; }
+    .sub-screen-header { font-size:0.8rem; color: var(--secondary); margin: 0 0 12px 0; }
+    /* ───────────────────────────────────────────────────── */
 </style>
     
 <script>
@@ -382,28 +408,66 @@
     function showSettingsScreen() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         document.getElementById('screen-settings').classList.add('active');
+    }
+
+    function backFromSettings() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        document.getElementById(lastScreen).classList.add('active');
+    }
+
+    function backToSettingsMenu() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-settings').classList.add('active');
+    }
+
+    function showSettingsCourts() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         document.getElementById('court-count-setting').value = numCourts;
-        document.getElementById('interval-mins-setting').value = intervalDuration;
+        document.getElementById('screen-settings-courts').classList.add('active');
+    }
+
+    function saveCourtSettings() {
+        numCourts = parseInt(document.getElementById('court-count-setting').value) || 3;
+        backToSettingsMenu();
+    }
+
+    function showSettingsRoster() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         renderClubRosterManagement();
-        // Sit Counts
-        const sitDiv = document.getElementById('settings-sit-counts');
+        document.getElementById('screen-settings-roster').classList.add('active');
+    }
+
+    function showSettingsSitCount() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        const sitDiv  = document.getElementById('settings-sit-counts');
+        const dateEl  = document.getElementById('settings-sit-count-date');
         const savedSits = localStorage.getItem('mff_last_sit_counts');
+        const savedDate = localStorage.getItem('mff_last_session_date');
         if (savedSits && sitDiv) {
             const sitsData = JSON.parse(savedSits);
             sitDiv.innerHTML = sitsData.map(p =>
                 `<div class="player-stat-row"><span style="font-weight:bold;">${p.name}</span><span>Sits: <strong>${p.sits}</strong></span></div>`
             ).join('');
         }
-        // Session Log
-        renderLastSessionHistory();
+        if (dateEl) dateEl.textContent = savedDate ? 'Session date: ' + savedDate : '';
+        document.getElementById('screen-settings-sit-count').classList.add('active');
     }
 
-    function saveSettingsAndReturn() {
-        numCourts = parseInt(document.getElementById('court-count-setting').value) || 3;
-        intervalDuration = parseInt(document.getElementById('interval-mins-setting').value) || 15;
-        document.getElementById('screen-settings').classList.remove('active');
-        document.getElementById(lastScreen).classList.add('active');
+    function showSettingsLog() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        renderLastSessionHistory();
+        const dateEl  = document.getElementById('settings-log-date');
+        const savedDate = localStorage.getItem('mff_last_session_date');
+        if (dateEl) dateEl.textContent = savedDate ? 'Session date: ' + savedDate : '';
+        document.getElementById('screen-settings-log').classList.add('active');
     }
+
+    function showSettingsAbout() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-settings-about').classList.add('active');
+    }
+
+    // saveSettingsAndReturn() replaced by saveCourtSettings() in V70
 
     // --- UI RENDERING ---
     function renderSessionRoster() {
@@ -455,13 +519,18 @@
     function clearSavedHistory() {
         localStorage.removeItem('mff_last_session_history');
         localStorage.removeItem('mff_last_sit_counts');
+        localStorage.removeItem('mff_last_session_date');
         lastSessionHistory = null;
-        const logDiv = document.getElementById('settings-session-log');
-        const sitDiv = document.getElementById('settings-sit-counts');
-        const btn    = document.getElementById('settings-clear-log-btn');
-        if (logDiv) logDiv.innerHTML = '<em>No previous session recorded.</em>';
-        if (sitDiv) sitDiv.innerHTML = '<em>No session data yet.</em>';
-        if (btn)    btn.style.display = 'none';
+        const logDiv  = document.getElementById('settings-session-log');
+        const sitDiv  = document.getElementById('settings-sit-counts');
+        const btn     = document.getElementById('settings-clear-log-btn');
+        const dateEl1 = document.getElementById('settings-sit-count-date');
+        const dateEl2 = document.getElementById('settings-log-date');
+        if (logDiv)  logDiv.innerHTML  = '<em>No previous session recorded.</em>';
+        if (sitDiv)  sitDiv.innerHTML  = '<em>No session data yet.</em>';
+        if (btn)     btn.style.display = 'none';
+        if (dateEl1) dateEl1.textContent = '';
+        if (dateEl2) dateEl2.textContent = '';
     }
 
     // --- BRAIN LOGIC ---
@@ -687,6 +756,7 @@
                     const sitData = sessionPlayers.map(p => ({ name: p.name, sits: p.sits }))
                                                    .sort((a,b) => b.sits - a.sits);
                     localStorage.setItem('mff_last_sit_counts', JSON.stringify(sitData));
+                    localStorage.setItem('mff_last_session_date', new Date().toLocaleDateString('en-CA', {weekday:'long', year:'numeric', month:'long', day:'numeric'}));
                 }
                 location.reload();
             } else if (action === 'swap') {
@@ -825,7 +895,7 @@
 <body>
 <!--
     ╔══════════════════════════════════════════════════════════════╗
-    ║  COPYRIGHT & PROPRIETARY NOTICE — V69                       ║
+    ║  COPYRIGHT & PROPRIETARY NOTICE — V70                       ║
     ║                                                              ║
     ║  By using this application, you agree that it is            ║
     ║  proprietary. This application is the                        ║
@@ -850,7 +920,8 @@
 
     <div class="container">
         <header>
-            🏸 Mitch's App
+            <div style="width:44px;"></div>
+            <span>🏸 Mitch's App</span>
             <button id="settings-btn" onclick="showSettingsScreen()">⚙️</button>
         </header>
 
@@ -905,31 +976,81 @@
 
             <div id="screen-settings" class="screen">
                 <div class="card">
-                    <h2>Admin Settings</h2>
-                    <p style="margin:0 0 10px 0; font-size:0.8rem; color: var(--secondary);">Version 69</p>
-                    <hr>
-                    <h3>&#128202; Sit Counts</h3>
-                    <div id="settings-sit-counts" style="font-size:0.9rem; color: var(--secondary);">
-                        <em>No session data yet.</em>
+                    <h2>Settings</h2>
+                    <div class="settings-menu-item" onclick="showSettingsCourts()">
+                        <span>Number of Courts</span><span class="menu-arrow">&#8250;</span>
                     </div>
-                    <hr>
-                    <h3>&#128203; Previous Session Log</h3>
-                    <div id="settings-session-log" style="font-size:0.85rem; color: var(--secondary);">
-                        <em>No previous session recorded.</em>
+                    <div class="settings-menu-item" onclick="showSettingsRoster()">
+                        <span>Club Roster</span><span class="menu-arrow">&#8250;</span>
                     </div>
-                    <button class="btn btn-danger" onclick="clearSavedHistory()" style="margin-top:10px; display:none;" id="settings-clear-log-btn">Clear Log</button>
-                    <hr>
+                    <div class="settings-menu-item" onclick="showSettingsSitCount()">
+                        <span>Previous Session Sit Count</span><span class="menu-arrow">&#8250;</span>
+                    </div>
+                    <div class="settings-menu-item" onclick="showSettingsLog()">
+                        <span>Previous Session Log</span><span class="menu-arrow">&#8250;</span>
+                    </div>
+                    <div class="settings-menu-item" onclick="showSettingsAbout()">
+                        <span>About</span><span class="menu-arrow">&#8250;</span>
+                    </div>
+                </div>
+                <button class="btn btn-action" onclick="backFromSettings()">&#8249; Back</button>
+            </div>
 
-                    <h3>Session Defaults</h3>
+            <!-- Settings: Number of Courts -->
+            <div id="screen-settings-courts" class="screen">
+                <div class="card">
+                    <h2>Number of Courts</h2>
                     <label>Number of Courts:</label>
-                    <input type="number" id="court-count-setting" value="3">
-                    <label>Interval Duration (min):</label>
-                    <input type="number" id="interval-mins-setting" value="15">
-                    <hr>
-                    <h3>Current Club Roster</h3>
+                    <input type="number" id="court-count-setting" value="3" min="1" max="10" style="margin-bottom:12px;">
+                </div>
+                <button class="btn btn-success" onclick="saveCourtSettings()">Save</button>
+                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
+            </div>
+
+            <!-- Settings: Club Roster -->
+            <div id="screen-settings-roster" class="screen">
+                <div class="card">
+                    <h2>Club Roster</h2>
                     <div id="club-roster-management-list"></div>
                 </div>
-                <button class="btn btn-action" onclick="saveSettingsAndReturn()">Done</button>
+                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
+            </div>
+
+            <!-- Settings: Previous Session Sit Count -->
+            <div id="screen-settings-sit-count" class="screen">
+                <div class="card">
+                    <h2>Previous Session Sit Count</h2>
+                    <p id="settings-sit-count-date" class="sub-screen-header"></p>
+                    <div id="settings-sit-counts"><em>No session data yet.</em></div>
+                </div>
+                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
+            </div>
+
+            <!-- Settings: Previous Session Log -->
+            <div id="screen-settings-log" class="screen">
+                <div class="card">
+                    <h2>Previous Session Log</h2>
+                    <p id="settings-log-date" class="sub-screen-header"></p>
+                    <div id="settings-session-log"><em>No previous session recorded.</em></div>
+                    <button class="btn btn-danger" id="settings-clear-log-btn" style="margin-top:10px; display:none;" onclick="clearSavedHistory()">Clear Log</button>
+                </div>
+                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
+            </div>
+
+            <!-- Settings: About -->
+            <div id="screen-settings-about" class="screen">
+                <div class="card">
+                    <h2>About</h2>
+                    <p class="sub-screen-header">Version 1.70</p>
+                    <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
+                        By using this application, you agree that it is proprietary.
+                        This application is the intellectual property of its developer and is
+                        licensed for authorized use only. Unauthorized copying, distribution,
+                        reverse engineering, or any form of reproduction is strictly prohibited.
+                    </p>
+                    <p style="font-size:0.85rem; font-style:italic;"><strong>&#169; 2026 ML All Right Reserved.</strong></p>
+                </div>
+                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
             </div>
         </div> 
     </div> 
@@ -940,7 +1061,7 @@
     <div id="sessionInfoModal" class="modal"><div class="modal-content" style="text-align:left; max-height:80vh; overflow-y:auto;"><h2>📊 Session Info</h2><p>Interval: <strong id="interval-count-display"></strong></p><hr><h3>Sit Counts</h3><div id="player-stats-list"></div><hr><h3>Log</h3><div id="interval-history-log"></div><button class="btn btn-primary" onclick="document.getElementById('sessionInfoModal').style.display='none'; toggleBackgroundScroll(false);">Close</button></div></div>
 
 <script>
-    /* ── V69 Right-Click & DevTools Protection ─────────────── */
+    /* ── V70 Right-Click & DevTools Protection ─────────────── */
     // Disable right-click context menu
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
