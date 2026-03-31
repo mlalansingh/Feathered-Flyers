@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mitch's Feathered Flyers Admin V68</title>
+    <title>Mitch's App V69</title>
     <style>
         :root {
             --primary: #f1c40f;          
@@ -267,7 +267,54 @@
             margin-bottom: 4px;
             border: 1px solid #eee;
         }
-    </style>
+    
+    /* ── V69 Copyright Notice Modal ─────────────────────────── */
+    #copyrightOverlay {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.75);
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+    }
+    #copyrightCard {
+        background: #ffffff;
+        max-width: 400px;
+        margin: 20px;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    #copyrightCard h2 {
+        margin-top: 0;
+        font-size: 1rem;
+        color: #2c3e50;
+        border-bottom: 2px solid #f1c40f;
+        padding-bottom: 8px;
+    }
+    #copyrightCard p {
+        font-size: 0.85rem;
+        color: #444;
+        line-height: 1.6;
+    }
+    #copyrightAckBtn {
+        display: block;
+        width: 100%;
+        margin-top: 16px;
+        padding: 12px;
+        background: #2c3e50;
+        color: #f1c40f;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    #copyrightAckBtn:hover { background: #1a252f; }
+    /* ─────────────────────────────────────────────────────────── */
+</style>
     
 <script>
     // --- DATA ---
@@ -277,7 +324,8 @@
         { id: 15, name: "Pradeep" }, { id: 12, name: "Prem" }, { id: 4, name: "Roger" }, { id: 11, name: "Sherri" },
         { id: 6, name: "Siva" }, { id: 9, name: "Steve S." }, { id: 8, name: "Steve V." }, { id: 3, name: "Sudesh" },
         { id: 27, name: "Sujay" }, { id: 5, name: "Tharma" }, { id: 7, name: "Tharsini" }, { id: 18, name: "Tzu" },
-        { id: 13, name: "Vincent" }, { id: 16, name: "Wilfred" }, { id: 21, name: "GUEST 1" }, { id: 22, name: "GUEST 2" },
+        { id: 13, name: "Vincent" }, { id: 16, name: "Wilfred" }, { id: 28, name: "Paul" }, { id: 29, name: "OiWun" },
+        { id: 21, name: "GUEST 1" }, { id: 22, name: "GUEST 2" },
         { id: 23, name: "GUEST 3" }, { id: 24, name: "GUEST 4" }
     ];
 
@@ -337,6 +385,17 @@
         document.getElementById('court-count-setting').value = numCourts;
         document.getElementById('interval-mins-setting').value = intervalDuration;
         renderClubRosterManagement();
+        // Sit Counts
+        const sitDiv = document.getElementById('settings-sit-counts');
+        const savedSits = localStorage.getItem('mff_last_sit_counts');
+        if (savedSits && sitDiv) {
+            const sitsData = JSON.parse(savedSits);
+            sitDiv.innerHTML = sitsData.map(p =>
+                `<div class="player-stat-row"><span style="font-weight:bold;">${p.name}</span><span>Sits: <strong>${p.sits}</strong></span></div>`
+            ).join('');
+        }
+        // Session Log
+        renderLastSessionHistory();
     }
 
     function saveSettingsAndReturn() {
@@ -372,15 +431,11 @@
     }
 
     function renderLastSessionHistory() {
-        const card = document.getElementById('last-session-history-card');
-        const container = document.getElementById('last-session-history-content');
+        const container = document.getElementById('settings-session-log');
+        const clearBtn = document.getElementById('settings-clear-log-btn');
         
-        if (!lastSessionHistory || lastSessionHistory.length === 0) {
-            card.style.display = 'none';
-            return;
-        }
-
-        card.style.display = 'block';
+        if (!lastSessionHistory || lastSessionHistory.length === 0) { return; }
+        if (clearBtn) clearBtn.style.display = 'block';
         let historyHTML = '';
         
         [...lastSessionHistory].reverse().forEach(log => {
@@ -394,13 +449,19 @@
                 </div>
             </div>`;
         });
-        container.innerHTML = historyHTML;
+        if (container) container.innerHTML = historyHTML;
     }
 
     function clearSavedHistory() {
         localStorage.removeItem('mff_last_session_history');
+        localStorage.removeItem('mff_last_sit_counts');
         lastSessionHistory = null;
-        document.getElementById('last-session-history-card').style.display = 'none';
+        const logDiv = document.getElementById('settings-session-log');
+        const sitDiv = document.getElementById('settings-sit-counts');
+        const btn    = document.getElementById('settings-clear-log-btn');
+        if (logDiv) logDiv.innerHTML = '<em>No previous session recorded.</em>';
+        if (sitDiv) sitDiv.innerHTML = '<em>No session data yet.</em>';
+        if (btn)    btn.style.display = 'none';
     }
 
     // --- BRAIN LOGIC ---
@@ -623,6 +684,9 @@
             } else if (action === 'endSession') {
                 if (intervalHistory.length > 0) {
                     localStorage.setItem('mff_last_session_history', JSON.stringify(intervalHistory));
+                    const sitData = sessionPlayers.map(p => ({ name: p.name, sits: p.sits }))
+                                                   .sort((a,b) => b.sits - a.sits);
+                    localStorage.setItem('mff_last_sit_counts', JSON.stringify(sitData));
                 }
                 location.reload();
             } else if (action === 'swap') {
@@ -728,7 +792,7 @@
     }
 
     function startSession() {
-        if (sessionPlayers.length < 7) { alert("Need 7+ players."); return; }
+        if (sessionPlayers.length < 7) { alert("Roll Call required — 7+ players needed."); return; }
         showSessionScreen(); generateAssignments();
     }
 
@@ -759,9 +823,34 @@
 </script>
 </head>
 <body>
+<!--
+    ╔══════════════════════════════════════════════════════════════╗
+    ║  COPYRIGHT & PROPRIETARY NOTICE — V69                       ║
+    ║                                                              ║
+    ║  By using this application, you agree that it is            ║
+    ║  proprietary. This application is the                        ║
+    ║  intellectual property of its developer and is licensed     ║
+    ║  for authorized use only. Unauthorized copying,             ║
+    ║  distribution, reverse engineering, or any form of          ║
+    ║  reproduction is strictly prohibited.                       ║
+    ║  © 2026 ML All Right Reserved.                              ║
+    ╚══════════════════════════════════════════════════════════════╝
+-->
+<div id="copyrightOverlay">
+    <div id="copyrightCard">
+        <h2>&#9888;&#65039; Proprietary Notice</h2>
+        <p><em>By using this application, you agree that it is proprietary.
+        This application is the intellectual property of its developer and is licensed
+        for authorized use only. Unauthorized copying, distribution, reverse engineering,
+        or any form of reproduction is strictly prohibited.</em></p>
+        <p><em><strong>&#169; 2026 ML All Right Reserved.</strong></em></p>
+        <button id="copyrightAckBtn">I Acknowledge</button>
+    </div>
+</div>
+
     <div class="container">
         <header>
-            🏸 Mitch's Feathered Flyers V68
+            🏸 Mitch's App
             <button id="settings-btn" onclick="showSettingsScreen()">⚙️</button>
         </header>
 
@@ -774,11 +863,7 @@
                 </div>
                 <button class="btn btn-primary" onclick="startSession()">Start Session</button>
 
-                <div class="card" id="last-session-history-card" style="display:none; margin-top: 15px;">
-                    <h3>Previous Session Log</h3>
-                    <div id="last-session-history-content"></div>
-                    <button class="btn btn-danger" onclick="clearSavedHistory()" style="margin-top: 10px;">Clear Log</button>
-                </div>
+                
 
                 <div style="margin-top: 15px; border-top: 1px solid #ccc; padding-top: 10px;">
                     <small style="color: var(--secondary);">Full Club Roster:</small>
@@ -821,6 +906,20 @@
             <div id="screen-settings" class="screen">
                 <div class="card">
                     <h2>Admin Settings</h2>
+                    <p style="margin:0 0 10px 0; font-size:0.8rem; color: var(--secondary);">Version 69</p>
+                    <hr>
+                    <h3>&#128202; Sit Counts</h3>
+                    <div id="settings-sit-counts" style="font-size:0.9rem; color: var(--secondary);">
+                        <em>No session data yet.</em>
+                    </div>
+                    <hr>
+                    <h3>&#128203; Previous Session Log</h3>
+                    <div id="settings-session-log" style="font-size:0.85rem; color: var(--secondary);">
+                        <em>No previous session recorded.</em>
+                    </div>
+                    <button class="btn btn-danger" onclick="clearSavedHistory()" style="margin-top:10px; display:none;" id="settings-clear-log-btn">Clear Log</button>
+                    <hr>
+
                     <h3>Session Defaults</h3>
                     <label>Number of Courts:</label>
                     <input type="number" id="court-count-setting" value="3">
@@ -839,5 +938,29 @@
     <div id="removePlayerModal" class="modal"><div class="modal-content"><h2>Select Player to Remove</h2><ul id="remove-player-list"></ul><button class="btn btn-danger" onclick="document.getElementById('removePlayerModal').style.display='none'; toggleBackgroundScroll(false);">Cancel</button></div></div>
     <div id="confirmModal" class="modal"><div class="modal-content"><p id="confirmMessage"></p><button class="btn btn-success" id="confirmYes">Yes</button><button class="btn btn-danger" id="confirmNo">No</button></div></div>
     <div id="sessionInfoModal" class="modal"><div class="modal-content" style="text-align:left; max-height:80vh; overflow-y:auto;"><h2>📊 Session Info</h2><p>Interval: <strong id="interval-count-display"></strong></p><hr><h3>Sit Counts</h3><div id="player-stats-list"></div><hr><h3>Log</h3><div id="interval-history-log"></div><button class="btn btn-primary" onclick="document.getElementById('sessionInfoModal').style.display='none'; toggleBackgroundScroll(false);">Close</button></div></div>
+
+<script>
+    /* ── V69 Right-Click & DevTools Protection ─────────────── */
+    // Disable right-click context menu
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+    // Disable F12, Ctrl+Shift+I/J/C, Ctrl+U
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F12') { e.preventDefault(); return false; }
+        if (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) {
+            e.preventDefault(); return false;
+        }
+        if (e.ctrlKey && e.key.toLowerCase() === 'u') {
+            e.preventDefault(); return false;
+        }
+    });
+
+    // Copyright acknowledgment — show every launch (testing mode)
+    document.getElementById('copyrightAckBtn').addEventListener('click', function() {
+        document.getElementById('copyrightOverlay').style.display = 'none';
+    });
+    /* ─────────────────────────────────────────────────────────── */
+</script>
+
 </body>
 </html>
