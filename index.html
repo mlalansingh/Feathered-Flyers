@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mitch's App V71</title>
+    <title>Mitch's App V72</title>
     <style>
         :root {
             --primary: #f1c40f;          
@@ -280,7 +280,7 @@
             border: 1px solid #eee;
         }
     
-    /* ── V71 Copyright Notice Modal ─────────────────────────── */
+    /* ── V72 Copyright Notice Modal ─────────────────────────── */
     #copyrightOverlay {
         display: flex;
         position: fixed;
@@ -327,7 +327,7 @@
     #copyrightAckBtn:hover { background: #1a252f; }
     /* ─────────────────────────────────────────────────────────── */
 
-    /* ── V71 Settings Menu ──────────────────────────────── */
+    /* ── V72 Settings Menu ──────────────────────────────── */
     .settings-menu-item {
         display: flex;
         justify-content: space-between;
@@ -417,6 +417,24 @@
         lastScreen = 'screen-session';
     }
 
+    
+    // ── V72 Resume Session: Auto-save after every interval ────────
+    function saveSessionState() {
+        const state = {
+            date: new Date().toLocaleDateString('en-CA', {weekday:'long', year:'numeric', month:'long', day:'numeric'}),
+            sessionPlayers:      sessionPlayers.map(p => Object.assign({}, p)),
+            currentPlaying:      currentPlaying.map(p => Object.assign({}, p)),
+            currentSitting:      currentSitting.map(p => Object.assign({}, p)),
+            newArrivals:         newArrivals.map(p => Object.assign({}, p)),
+            currentIntervalCount: currentIntervalCount,
+            intervalHistory:     JSON.parse(JSON.stringify(intervalHistory)),
+            numCourts:           numCourts,
+            checkInCounter:      checkInCounter
+        };
+        localStorage.setItem('mff_resume_session', JSON.stringify(state));
+    }
+    // ──────────────────────────────────────────────────────────────
+
     function showSettingsScreen() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         document.getElementById('screen-settings').classList.add('active');
@@ -474,12 +492,58 @@
         document.getElementById('screen-settings-log').classList.add('active');
     }
 
+    
+    function showSettingsResume() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        const saved      = localStorage.getItem('mff_resume_session');
+        const summaryDiv = document.getElementById('resume-summary');
+        const confirmBtn = document.getElementById('resume-confirm-btn');
+        if (saved) {
+            const st = JSON.parse(saved);
+            const waiting = st.newArrivals && st.newArrivals.length > 0
+                ? `<p style="margin-bottom:8px;"><strong>Waiting (New Arrivals):</strong> ${st.newArrivals.map(p => p.name).join(', ')}</p>`
+                : '';
+            summaryDiv.innerHTML =
+                `<p style="margin-bottom:8px;"><strong>Date:</strong> ${st.date}</p>` +
+                `<p style="margin-bottom:8px;"><strong>Players checked in:</strong> ${st.sessionPlayers.length}</p>` +
+                `<p style="margin-bottom:8px;"><strong>Interval:</strong> ${st.currentIntervalCount}</p>` +
+                `<p style="margin-bottom:8px;"><strong>Courts:</strong> ${st.numCourts}</p>` +
+                waiting +
+                `<p style="margin-top:12px; color:var(--secondary); font-size:0.85rem;">Tap Resume to continue from where you left off.</p>`;
+            confirmBtn.style.display = 'block';
+        } else {
+            summaryDiv.innerHTML = '<em>No saved session found.</em>';
+            confirmBtn.style.display = 'none';
+        }
+        document.getElementById('screen-settings-resume').classList.add('active');
+    }
+
+    function resumeSession() {
+        const saved = localStorage.getItem('mff_resume_session');
+        if (!saved) return;
+        const st = JSON.parse(saved);
+        // Restore all state — algorithm variables only, no algorithm logic changed
+        sessionPlayers       = st.sessionPlayers;
+        currentPlaying       = st.currentPlaying;
+        currentSitting       = st.currentSitting;
+        newArrivals          = st.newArrivals || [];
+        currentIntervalCount = st.currentIntervalCount;
+        intervalHistory      = st.intervalHistory;
+        numCourts            = st.numCourts;
+        checkInCounter       = st.checkInCounter;
+        // Navigate to session screen and re-render
+        const activeCourts = Math.min(Math.floor(sessionPlayers.length / 4), numCourts);
+        showSessionScreen();
+        renderSessionUI(activeCourts);
+        renderNewArrivals();
+    }
+
     function showSettingsAbout() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         document.getElementById('screen-settings-about').classList.add('active');
     }
 
-    // saveSettingsAndReturn() replaced by saveCourtSettings() in V71
+    // saveSettingsAndReturn() replaced by saveCourtSettings() in V72
 
     // --- UI RENDERING ---
     function renderSessionRoster() {
@@ -762,6 +826,7 @@
             document.getElementById('confirmModal').style.display = 'none';
             if (action === 'nextInterval') {
                 generateAssignments();
+                saveSessionState();
             } else if (action === 'endSession') {
                 if (intervalHistory.length > 0) {
                     localStorage.setItem('mff_last_session_history', JSON.stringify(intervalHistory));
@@ -861,7 +926,7 @@
         if (p) { 
             const newP = { ...p, sits: 0, checkInIndex: ++checkInCounter };
             if (document.getElementById('screen-session').classList.contains('active')) {
-                newArrivals.push(newP); renderNewArrivals();
+                newArrivals.push(newP); renderNewArrivals(); saveSessionState();
             } else {
                 sessionPlayers.push(newP); renderSessionRoster(); renderAvailableRollCallPlayers();
             }
@@ -908,7 +973,7 @@
 <body>
 <!--
     ╔══════════════════════════════════════════════════════════════╗
-    ║  COPYRIGHT & PROPRIETARY NOTICE — V71                       ║
+    ║  COPYRIGHT & PROPRIETARY NOTICE — V72                       ║
     ║                                                              ║
     ║  By using this application, you agree that it is            ║
     ║  proprietary. This application is the                        ║
@@ -1005,6 +1070,9 @@
                     <div class="settings-menu-item" onclick="showSettingsAbout()">
                         <span>About</span><span class="menu-arrow">&#8250;</span>
                     </div>
+                    <div class="settings-menu-item" onclick="showSettingsResume()">
+                        <span>Resume Session</span><span class="menu-arrow">&#8250;</span>
+                    </div>
                 </div>
                 <button class="btn btn-action" onclick="backFromSettings()">&#8249; Back</button>
             </div>
@@ -1049,11 +1117,23 @@
                 <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
             </div>
 
+            <!-- Settings: Resume Session -->
+            <div id="screen-settings-resume" class="screen">
+                <div class="card">
+                    <h2>Resume Session</h2>
+                    <div id="resume-summary" style="font-size:0.9rem; line-height:1.8;">
+                        <em>No saved session found.</em>
+                    </div>
+                </div>
+                <button class="btn btn-success" id="resume-confirm-btn" onclick="resumeSession()" style="display:none; margin-bottom:10px;">Resume</button>
+                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
+            </div>
+
             <!-- Settings: About -->
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 2.71</p>
+                    <p class="sub-screen-header">Version 2.72</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
@@ -1073,7 +1153,7 @@
     <div id="sessionInfoModal" class="modal"><div class="modal-content" style="text-align:left; max-height:80vh; overflow-y:auto;"><h2>📊 Session Info</h2><p>Interval: <strong id="interval-count-display"></strong></p><hr><h3>Sit Counts</h3><div id="player-stats-list"></div><hr><h3>Log</h3><div id="interval-history-log"></div><button class="btn btn-primary" onclick="document.getElementById('sessionInfoModal').style.display='none'; toggleBackgroundScroll(false);">Close</button></div></div>
 
 <script>
-    /* ── V71 Right-Click & DevTools Protection ─────────────── */
+    /* ── V72 Right-Click & DevTools Protection ─────────────── */
     // Disable right-click context menu
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
