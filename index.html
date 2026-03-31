@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mitch's App V70</title>
+    <title>Mitch's App V71</title>
     <style>
         :root {
             --primary: #f1c40f;          
@@ -133,6 +133,10 @@
             box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
             transform: translateY(1px);
         }
+        .player-slot.pill {
+            border-radius: 50px;
+            padding: 8px 16px;
+        }
         
         .btn-primary { background-color: #435b6c; color: white; } 
         .btn-action { background-color: var(--success); color: white; }
@@ -188,14 +192,22 @@
             gap: 10px;
         }
         .player-slot {
-            background: var(--light); 
-            padding: 6px;
-            border-radius: 4px;
+            background: #e8eaf0;
+            padding: 8px 12px;
+            border-radius: 10px;
             text-align: center;
             font-size: 0.9rem;
-            cursor: pointer; 
+            font-weight: 600;
+            cursor: pointer;
             color: var(--dark);
-            border: 3px solid transparent;
+            border: none;
+            box-shadow: 3px 3px 7px rgba(0,0,0,0.18), -2px -2px 5px rgba(255,255,255,0.85);
+            transition: box-shadow 0.1s ease, transform 0.1s ease;
+            user-select: none;
+        }
+        .player-slot:active {
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.18), inset -1px -1px 4px rgba(255,255,255,0.7);
+            transform: translateY(1px);
         }
         .player-slot.selected {
             border: 3px solid var(--swap-highlight);
@@ -268,7 +280,7 @@
             border: 1px solid #eee;
         }
     
-    /* ── V70 Copyright Notice Modal ─────────────────────────── */
+    /* ── V71 Copyright Notice Modal ─────────────────────────── */
     #copyrightOverlay {
         display: flex;
         position: fixed;
@@ -315,7 +327,7 @@
     #copyrightAckBtn:hover { background: #1a252f; }
     /* ─────────────────────────────────────────────────────────── */
 
-    /* ── V70 Settings Menu ──────────────────────────────── */
+    /* ── V71 Settings Menu ──────────────────────────────── */
     .settings-menu-item {
         display: flex;
         justify-content: space-between;
@@ -467,7 +479,7 @@
         document.getElementById('screen-settings-about').classList.add('active');
     }
 
-    // saveSettingsAndReturn() replaced by saveCourtSettings() in V70
+    // saveSettingsAndReturn() replaced by saveCourtSettings() in V71
 
     // --- UI RENDERING ---
     function renderSessionRoster() {
@@ -758,6 +770,7 @@
                     localStorage.setItem('mff_last_sit_counts', JSON.stringify(sitData));
                     localStorage.setItem('mff_last_session_date', new Date().toLocaleDateString('en-CA', {weekday:'long', year:'numeric', month:'long', day:'numeric'}));
                 }
+                sessionStorage.setItem('sessionEndReload', '1');
                 location.reload();
             } else if (action === 'swap') {
                 executeSwap(payload.cand1, payload.cand2);
@@ -828,7 +841,7 @@
 
     function renderNewArrivals() {
         const container = document.getElementById('new-arrivals-container');
-        container.innerHTML = newArrivals.length ? newArrivals.map(p => `<div class="player-slot" style="border:1px solid var(--primary);">${p.name}</div>`).join('') : "<small>No new players waiting.</small>";
+        container.innerHTML = newArrivals.length ? newArrivals.map(p => `<div class="player-slot">${p.name}</div>`).join('') : "<small>No new players waiting.</small>";
     }
 
     function renderClubRosterManagement() {
@@ -895,7 +908,7 @@
 <body>
 <!--
     ╔══════════════════════════════════════════════════════════════╗
-    ║  COPYRIGHT & PROPRIETARY NOTICE — V70                       ║
+    ║  COPYRIGHT & PROPRIETARY NOTICE — V71                       ║
     ║                                                              ║
     ║  By using this application, you agree that it is            ║
     ║  proprietary. This application is the                        ║
@@ -920,7 +933,7 @@
 
     <div class="container">
         <header>
-            <div style="width:44px;"></div>
+            <div style="width:34px;"></div>
             <span>🏸 Mitch's App</span>
             <button id="settings-btn" onclick="showSettingsScreen()">⚙️</button>
         </header>
@@ -1032,7 +1045,6 @@
                     <h2>Previous Session Log</h2>
                     <p id="settings-log-date" class="sub-screen-header"></p>
                     <div id="settings-session-log"><em>No previous session recorded.</em></div>
-                    <button class="btn btn-danger" id="settings-clear-log-btn" style="margin-top:10px; display:none;" onclick="clearSavedHistory()">Clear Log</button>
                 </div>
                 <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
             </div>
@@ -1041,7 +1053,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 1.70</p>
+                    <p class="sub-screen-header">Version 2.71</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
@@ -1061,7 +1073,7 @@
     <div id="sessionInfoModal" class="modal"><div class="modal-content" style="text-align:left; max-height:80vh; overflow-y:auto;"><h2>📊 Session Info</h2><p>Interval: <strong id="interval-count-display"></strong></p><hr><h3>Sit Counts</h3><div id="player-stats-list"></div><hr><h3>Log</h3><div id="interval-history-log"></div><button class="btn btn-primary" onclick="document.getElementById('sessionInfoModal').style.display='none'; toggleBackgroundScroll(false);">Close</button></div></div>
 
 <script>
-    /* ── V70 Right-Click & DevTools Protection ─────────────── */
+    /* ── V71 Right-Click & DevTools Protection ─────────────── */
     // Disable right-click context menu
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
@@ -1076,7 +1088,11 @@
         }
     });
 
-    // Copyright acknowledgment — show every launch (testing mode)
+    // Copyright notice — suppress on session-end reload, show all other launches
+    if (sessionStorage.getItem('sessionEndReload') === '1') {
+        sessionStorage.removeItem('sessionEndReload');
+        document.getElementById('copyrightOverlay').style.display = 'none';
+    }
     document.getElementById('copyrightAckBtn').addEventListener('click', function() {
         document.getElementById('copyrightOverlay').style.display = 'none';
     });
