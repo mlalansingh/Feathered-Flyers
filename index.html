@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mitch's App V72</title>
+    <title>Die Hard Badminton</title>
     <style>
         :root {
             --primary: #f1c40f;          
@@ -280,7 +280,7 @@
             border: 1px solid #eee;
         }
     
-    /* ── V72 Copyright Notice Modal ─────────────────────────── */
+    /* ── V74 Copyright Notice Modal ─────────────────────────── */
     #copyrightOverlay {
         display: flex;
         position: fixed;
@@ -327,7 +327,7 @@
     #copyrightAckBtn:hover { background: #1a252f; }
     /* ─────────────────────────────────────────────────────────── */
 
-    /* ── V72 Settings Menu ──────────────────────────────── */
+    /* ── V74 Settings Menu ──────────────────────────────── */
     .settings-menu-item {
         display: flex;
         justify-content: space-between;
@@ -380,6 +380,8 @@
     let swapCandidate = null; // Stores {id, location}
     let intervalHistory = []; 
     let lastSessionHistory = null;
+    let arrivalLog   = [];  // { beforeInterval, names[] } — display only, never read by algorithm
+    let departureLog = [];  // { beforeInterval, names[] } — display only, never read by algorithm
 
     // --- HELPERS ---
     function sortPlayersAlphabetical(a, b) {
@@ -429,7 +431,9 @@
             currentIntervalCount: currentIntervalCount,
             intervalHistory:     JSON.parse(JSON.stringify(intervalHistory)),
             numCourts:           numCourts,
-            checkInCounter:      checkInCounter
+            checkInCounter:      checkInCounter,
+            arrivalLog:          arrivalLog,
+            departureLog:        departureLog
         };
         localStorage.setItem('mff_resume_session', JSON.stringify(state));
     }
@@ -467,10 +471,10 @@
         document.getElementById('screen-settings-roster').classList.add('active');
     }
 
-    function showSettingsSitCount() {
+    function showPreviousSessionInfo() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         const sitDiv  = document.getElementById('settings-sit-counts');
-        const dateEl  = document.getElementById('settings-sit-count-date');
+        const dateEl  = document.getElementById('settings-prev-session-date');
         const savedSits = localStorage.getItem('mff_last_sit_counts');
         const savedDate = localStorage.getItem('mff_last_session_date');
         if (savedSits && sitDiv) {
@@ -480,19 +484,53 @@
             ).join('');
         }
         if (dateEl) dateEl.textContent = savedDate ? 'Session date: ' + savedDate : '';
-        document.getElementById('screen-settings-sit-count').classList.add('active');
-    }
-
-    function showSettingsLog() {
-        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         renderLastSessionHistory();
-        const dateEl  = document.getElementById('settings-log-date');
-        const savedDate = localStorage.getItem('mff_last_session_date');
-        if (dateEl) dateEl.textContent = savedDate ? 'Session date: ' + savedDate : '';
-        document.getElementById('screen-settings-log').classList.add('active');
+        document.getElementById('screen-settings-prev-session').classList.add('active');
     }
 
     
+    function showCurrentSessionInfo() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        // Interval count
+        const intervalEl = document.getElementById('current-session-interval');
+        if (intervalEl) intervalEl.textContent = currentIntervalCount > 0
+            ? 'Interval: ' + currentIntervalCount
+            : 'No session in progress.';
+        // Sit counts (corrected display)
+        const sitDiv = document.getElementById('current-session-sit-counts');
+        if (sitDiv) {
+            if (sessionPlayers.length > 0) {
+                const sorted = [...sessionPlayers].sort((a,b) =>
+                    (b.sits-(b.joinSits||0)) - (a.sits-(a.joinSits||0)));
+                sitDiv.innerHTML = sorted.map(p => {
+                    const displaySits = p.sits - (p.joinSits || 0);
+                    return `<div class="player-stat-row"><span style="font-weight:bold;">${p.name}</span><span>Sits: <strong>${displaySits}</strong></span></div>`;
+                }).join('');
+            } else {
+                sitDiv.innerHTML = '<em>No active session.</em>';
+            }
+        }
+        // Session log
+        const logDiv = document.getElementById('current-session-log');
+        if (logDiv) {
+            if (intervalHistory.length > 0) {
+                let html = '';
+                [...intervalHistory].reverse().forEach((log) => {
+                    const evtLines = buildEventLines(log.interval - 1);
+                    html += `<div class="log-card"><strong>Interval ${log.interval}:</strong>` +
+                        log.courts.map(c => `<p>Court ${c.court}: ${c.players.join(', ')}</p>`).join('') +
+                        `<p style="font-style:italic;">Sat Out: ${log.sitting.join(', ') || 'None'}</p>` +
+                        evtLines +
+                        `</div>`;
+                });
+                logDiv.innerHTML = html;
+            } else {
+                logDiv.innerHTML = '<em>No intervals played yet.</em>';
+            }
+        }
+        document.getElementById('screen-settings-current-session').classList.add('active');
+    }
+
     function showSettingsResume() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         const saved      = localStorage.getItem('mff_resume_session');
@@ -531,6 +569,8 @@
         intervalHistory      = st.intervalHistory;
         numCourts            = st.numCourts;
         checkInCounter       = st.checkInCounter;
+        arrivalLog           = st.arrivalLog   || [];
+        departureLog         = st.departureLog || [];
         // Navigate to session screen and re-render
         const activeCourts = Math.min(Math.floor(sessionPlayers.length / 4), numCourts);
         showSessionScreen();
@@ -538,12 +578,29 @@
         renderNewArrivals();
     }
 
+    // ── V74 Arrival/Departure log helper ──────────────────────────
+    function buildEventLines(afterInterval) {
+        // Shows events that happened BEFORE the next interval (afterInterval+1)
+        const nextIv = afterInterval + 1;
+        const arrived  = arrivalLog.filter(e => e.beforeInterval === nextIv).map(e => e.name);
+        const departed = departureLog.filter(e => e.beforeInterval === nextIv).map(e => e.name);
+        let html = '';
+        if (arrived.length || departed.length) {
+            html += '<div style="font-style:italic; color:var(--secondary); margin:4px 0 4px 5px; border-top:1px dotted #ddd; padding-top:4px;">';
+            if (arrived.length)  html += `<span style="color:var(--success, #2e7d32);"><strong>Arrived:</strong> ${arrived.join(', ')}</span><br>`;
+            if (departed.length) html += `<span style="color:var(--warning, #c05000);"><strong>Left:</strong> ${departed.join(', ')}</span>`;
+            html += '</div>';
+        }
+        return html;
+    }
+    // ──────────────────────────────────────────────────────────────
+
     function showSettingsAbout() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         document.getElementById('screen-settings-about').classList.add('active');
     }
 
-    // saveSettingsAndReturn() replaced by saveCourtSettings() in V72
+    // saveSettingsAndReturn() replaced by saveCourtSettings() in V74
 
     // --- UI RENDERING ---
     function renderSessionRoster() {
@@ -578,7 +635,8 @@
         if (clearBtn) clearBtn.style.display = 'block';
         let historyHTML = '';
         
-        [...lastSessionHistory].reverse().forEach(log => {
+        [...lastSessionHistory].reverse().forEach((log) => {
+            const evtLines = buildEventLines(log.interval - 1);
             historyHTML += `<div class="log-card">
                 <strong style="font-size: 1rem; color: var(--dark); border-bottom: 1px dashed #ccc; display: block; padding-bottom: 5px;">Interval ${log.interval}:</strong>
                 <div style="font-size: 0.9rem; padding-top: 5px;">
@@ -586,6 +644,7 @@
                     <p style="margin: 3px 0; padding-left: 5px; font-style: italic; color: var(--secondary); border-top: 1px dotted #ddd; padding-top: 5px;">
                         <strong>Sat Out:</strong> ${log.sitting && log.sitting.length > 0 ? log.sitting.join(', ') : 'None'}
                     </p>
+                    ${evtLines}
                 </div>
             </div>`;
         });
@@ -630,7 +689,7 @@
         
         if (newArrivals.length > 0) {
             const maxSits = sessionPlayers.length > 0 ? Math.max(...sessionPlayers.map(p => p.sits)) : 0;
-            newArrivals.forEach(p => p.sits = maxSits + 1);
+            newArrivals.forEach(p => { p.sits = maxSits + 1; p.joinSits = maxSits + 1; });
             sessionPlayers.push(...newArrivals);
             newArrivals = [];
             renderNewArrivals();
@@ -830,9 +889,11 @@
             } else if (action === 'endSession') {
                 if (intervalHistory.length > 0) {
                     localStorage.setItem('mff_last_session_history', JSON.stringify(intervalHistory));
-                    const sitData = sessionPlayers.map(p => ({ name: p.name, sits: p.sits }))
+                    const sitData = sessionPlayers.map(p => ({ name: p.name, sits: p.sits - (p.joinSits || 0) }))
                                                    .sort((a,b) => b.sits - a.sits);
                     localStorage.setItem('mff_last_sit_counts', JSON.stringify(sitData));
+                    localStorage.setItem('mff_arrival_log', JSON.stringify(arrivalLog));
+                    localStorage.setItem('mff_departure_log', JSON.stringify(departureLog));
                     localStorage.setItem('mff_last_session_date', new Date().toLocaleDateString('en-CA', {weekday:'long', year:'numeric', month:'long', day:'numeric'}));
                 }
                 sessionStorage.setItem('sessionEndReload', '1');
@@ -865,8 +926,9 @@
 
         const statsContainer = document.getElementById('player-stats-list');
         let statsHTML = `<div class="log-card">`;
-        sessionPlayers.sort((a,b) => b.sits - a.sits).forEach(p => {
-            statsHTML += `<div class="player-stat-row"><span style="font-weight:bold;">${p.name}</span><span>Sits: <strong>${p.sits}</strong></span></div>`;
+        sessionPlayers.sort((a,b) => (b.sits-(b.joinSits||0)) - (a.sits-(a.joinSits||0))).forEach(p => {
+            const displaySits = p.sits - (p.joinSits || 0);
+            statsHTML += `<div class="player-stat-row"><span style="font-weight:bold;">${p.name}</span><span>Sits: <strong>${displaySits}</strong></span></div>`;
         });
         statsHTML += `</div>`;
         statsContainer.innerHTML = statsHTML;
@@ -927,6 +989,7 @@
             const newP = { ...p, sits: 0, checkInIndex: ++checkInCounter };
             if (document.getElementById('screen-session').classList.contains('active')) {
                 newArrivals.push(newP); renderNewArrivals(); saveSessionState();
+                arrivalLog.push({ beforeInterval: currentIntervalCount + 1, name: newP.name });
             } else {
                 sessionPlayers.push(newP); renderSessionRoster(); renderAvailableRollCallPlayers();
             }
@@ -934,6 +997,11 @@
     }
 
     function removePlayerFromSession(id) {
+        const wasPlaying = sessionPlayers.some(p => p.id === id);
+        if (wasPlaying) {
+            const leaving = sessionPlayers.find(p => p.id === id);
+            if (leaving) departureLog.push({ beforeInterval: currentIntervalCount + 1, name: leaving.name });
+        }
         sessionPlayers = sessionPlayers.filter(p => p.id !== id);
         newArrivals = newArrivals.filter(p => p.id !== id);
         renderSessionRoster(); renderAvailableRollCallPlayers(); renderNewArrivals();
@@ -962,6 +1030,10 @@
     document.addEventListener('DOMContentLoaded', () => {
         const saved = localStorage.getItem('mff_last_session_history');
         if (saved) { lastSessionHistory = JSON.parse(saved); }
+        const savedArr = localStorage.getItem('mff_arrival_log');
+        const savedDep = localStorage.getItem('mff_departure_log');
+        if (savedArr) { arrivalLog   = JSON.parse(savedArr); }
+        if (savedDep) { departureLog = JSON.parse(savedDep); }
         
         const display = document.getElementById('club-roster-display');
         display.textContent = [...clubRoster].sort(sortPlayersAlphabetical).map(p => p.name).join(', ');
@@ -973,7 +1045,7 @@
 <body>
 <!--
     ╔══════════════════════════════════════════════════════════════╗
-    ║  COPYRIGHT & PROPRIETARY NOTICE — V72                       ║
+    ║  COPYRIGHT & PROPRIETARY NOTICE — V74                       ║
     ║                                                              ║
     ║  By using this application, you agree that it is            ║
     ║  proprietary. This application is the                        ║
@@ -999,7 +1071,7 @@
     <div class="container">
         <header>
             <div style="width:34px;"></div>
-            <span>🏸 Mitch's App</span>
+            <span>🏸 Die Hard Badminton</span>
             <button id="settings-btn" onclick="showSettingsScreen()">⚙️</button>
         </header>
 
@@ -1036,7 +1108,7 @@
                 <button class="btn btn-action" onclick="showConfirmation('nextInterval')">Next Interval / Reshuffle</button>
                 <hr>
                 <div id="courts-container"></div>
-                <button class="btn btn-info-dark" onclick="showSessionInfoModal()">📊 Session Info</button>
+                
                 <div class="card">
                     <h2>☕ Sitting Out (Tap player to swap)</h2>
                     <div id="bench-container" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
@@ -1061,11 +1133,11 @@
                     <div class="settings-menu-item" onclick="showSettingsRoster()">
                         <span>Club Roster</span><span class="menu-arrow">&#8250;</span>
                     </div>
-                    <div class="settings-menu-item" onclick="showSettingsSitCount()">
-                        <span>Previous Session Sit Count</span><span class="menu-arrow">&#8250;</span>
+                    <div class="settings-menu-item" onclick="showCurrentSessionInfo()">
+                        <span>Current Session Info</span><span class="menu-arrow">&#8250;</span>
                     </div>
-                    <div class="settings-menu-item" onclick="showSettingsLog()">
-                        <span>Previous Session Log</span><span class="menu-arrow">&#8250;</span>
+                    <div class="settings-menu-item" onclick="showPreviousSessionInfo()">
+                        <span>Previous Session Info</span><span class="menu-arrow">&#8250;</span>
                     </div>
                     <div class="settings-menu-item" onclick="showSettingsAbout()">
                         <span>About</span><span class="menu-arrow">&#8250;</span>
@@ -1097,21 +1169,28 @@
                 <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
             </div>
 
-            <!-- Settings: Previous Session Sit Count -->
-            <div id="screen-settings-sit-count" class="screen">
+            <!-- Settings: Current Session Info -->
+            <div id="screen-settings-current-session" class="screen">
                 <div class="card">
-                    <h2>Previous Session Sit Count</h2>
-                    <p id="settings-sit-count-date" class="sub-screen-header"></p>
-                    <div id="settings-sit-counts"><em>No session data yet.</em></div>
+                    <h2>Current Session Info</h2>
+                    <p id="current-session-interval" class="sub-screen-header"></p>
+                    <h3 style="margin:10px 0 6px;">Sit Counts</h3>
+                    <div id="current-session-sit-counts"><em>No active session.</em></div>
+                    <hr style="margin:12px 0;">
+                    <h3 style="margin:0 0 6px;">Session Log</h3>
+                    <div id="current-session-log"><em>No intervals played yet.</em></div>
                 </div>
-                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
+                <button class="btn btn-action" onclick="backFromSettings()">&#8249; Back</button>
             </div>
 
-            <!-- Settings: Previous Session Log -->
-            <div id="screen-settings-log" class="screen">
+            <!-- Settings: Previous Session Info (combined) -->
+            <div id="screen-settings-prev-session" class="screen">
                 <div class="card">
-                    <h2>Previous Session Log</h2>
-                    <p id="settings-log-date" class="sub-screen-header"></p>
+                    <h2>Previous Session Info</h2>
+                    <p id="settings-prev-session-date" class="sub-screen-header"></p>
+                    <h3 style="margin: 12px 0 6px; font-size: 1rem; color: var(--secondary);">Sit Count</h3>
+                    <div id="settings-sit-counts"><em>No session data yet.</em></div>
+                    <h3 style="margin: 16px 0 6px; font-size: 1rem; color: var(--secondary);">Session Log</h3>
                     <div id="settings-session-log"><em>No previous session recorded.</em></div>
                 </div>
                 <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
@@ -1133,7 +1212,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 2.72</p>
+                    <p class="sub-screen-header">Version 2.77</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
@@ -1153,7 +1232,7 @@
     <div id="sessionInfoModal" class="modal"><div class="modal-content" style="text-align:left; max-height:80vh; overflow-y:auto;"><h2>📊 Session Info</h2><p>Interval: <strong id="interval-count-display"></strong></p><hr><h3>Sit Counts</h3><div id="player-stats-list"></div><hr><h3>Log</h3><div id="interval-history-log"></div><button class="btn btn-primary" onclick="document.getElementById('sessionInfoModal').style.display='none'; toggleBackgroundScroll(false);">Close</button></div></div>
 
 <script>
-    /* ── V72 Right-Click & DevTools Protection ─────────────── */
+    /* ── V74 Right-Click & DevTools Protection ─────────────── */
     // Disable right-click context menu
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
