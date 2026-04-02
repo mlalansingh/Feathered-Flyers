@@ -1,9 +1,23 @@
+<!--
+ * ============================================================
+ * CourtFlow — Rotation Manager
+ * Developer & Owner: ML
+ * Copyright: © 2026 ML. All Rights Reserved.
+ * ============================================================
+ *
+ * This software is proprietary and confidential.
+ * Unauthorized copying, distribution, modification, or
+ * reverse engineering of this file, in whole or in part,
+ * is strictly prohibited without the express written
+ * permission of ML.
+ * ============================================================
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Die Hard Badminton</title>
+    <title>CourtFlow</title>
     <style>
         :root {
             --primary: #f1c40f;          
@@ -516,7 +530,7 @@
             if (intervalHistory.length > 0) {
                 let html = '';
                 [...intervalHistory].reverse().forEach((log) => {
-                    const evtLines = buildEventLines(log.interval - 1);
+                    const evtLines = buildEventLines(log.interval);
                     html += `<div class="log-card"><strong>Interval ${log.interval}:</strong>` +
                         log.courts.map(c => `<p>Court ${c.court}: ${c.players.join(', ')}</p>`).join('') +
                         `<p style="font-style:italic;">Sat Out: ${log.sitting.join(', ') || 'None'}</p>` +
@@ -636,7 +650,7 @@
         let historyHTML = '';
         
         [...lastSessionHistory].reverse().forEach((log) => {
-            const evtLines = buildEventLines(log.interval - 1);
+            const evtLines = buildEventLines(log.interval);
             historyHTML += `<div class="log-card">
                 <strong style="font-size: 1rem; color: var(--dark); border-bottom: 1px dashed #ccc; display: block; padding-bottom: 5px;">Interval ${log.interval}:</strong>
                 <div style="font-size: 0.9rem; padding-top: 5px;">
@@ -895,6 +909,8 @@
                     localStorage.setItem('mff_arrival_log', JSON.stringify(arrivalLog));
                     localStorage.setItem('mff_departure_log', JSON.stringify(departureLog));
                     localStorage.setItem('mff_last_session_date', new Date().toLocaleDateString('en-CA', {weekday:'long', year:'numeric', month:'long', day:'numeric'}));
+                    const _sc = parseInt(localStorage.getItem('mff_session_count') || '0') + 1;
+                    localStorage.setItem('mff_session_count', _sc);
                 }
                 sessionStorage.setItem('sessionEndReload', '1');
                 location.reload();
@@ -1003,7 +1019,13 @@
             if (leaving) departureLog.push({ beforeInterval: currentIntervalCount + 1, name: leaving.name });
         }
         sessionPlayers = sessionPlayers.filter(p => p.id !== id);
-        newArrivals = newArrivals.filter(p => p.id !== id);
+        newArrivals    = newArrivals.filter(p => p.id !== id);
+        // Option A: remove from live court/bench display without reorganizing
+        currentPlaying = currentPlaying.filter(p => p.id !== id);
+        currentSitting = currentSitting.filter(p => p.id !== id);
+        const activeCourts = Math.min(Math.floor(sessionPlayers.length / 4), numCourts);
+        renderCourts(currentPlaying, activeCourts);
+        renderBench(currentSitting);
         renderSessionRoster(); renderAvailableRollCallPlayers(); renderNewArrivals();
     }
 
@@ -1075,7 +1097,7 @@
     <div class="container">
         <header>
             <div style="width:34px;"></div>
-            <span>🏸 Die Hard Badminton</span>
+            <span>🏸 <em>CourtFlow</em></span>
             <button id="settings-btn" onclick="showSettingsScreen()">⚙️</button>
         </header>
 
@@ -1216,7 +1238,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 2.78</p>
+                    <p class="sub-screen-header">Version 2.81</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
@@ -1251,12 +1273,29 @@
         }
     });
 
-    // Copyright notice — suppress on session-end reload, show all other launches
-    if (sessionStorage.getItem('sessionEndReload') === '1') {
-        sessionStorage.removeItem('sessionEndReload');
-        document.getElementById('copyrightOverlay').style.display = 'none';
-    }
+    // Copyright notice logic:
+    // - Always show on first ever use (mff_notice_confirmed not set)
+    // - Suppress on session-end reload
+    // - Randomly show roughly every 5 sessions after first confirmation
+    (function() {
+        const isSessionReload = sessionStorage.getItem('sessionEndReload') === '1';
+        if (isSessionReload) {
+            sessionStorage.removeItem('sessionEndReload');
+            document.getElementById('copyrightOverlay').style.display = 'none';
+            return;
+        }
+        const confirmed   = localStorage.getItem('mff_notice_confirmed') === '1';
+        const sessionCount = parseInt(localStorage.getItem('mff_session_count') || '0');
+        // Show if: never confirmed, OR randomly ~1-in-5 after 5+ sessions
+        const showRandom  = confirmed && sessionCount >= 5 && Math.random() < 0.2;
+        if (!confirmed || showRandom) {
+            document.getElementById('copyrightOverlay').style.display = 'flex';
+        } else {
+            document.getElementById('copyrightOverlay').style.display = 'none';
+        }
+    })();
     document.getElementById('copyrightAckBtn').addEventListener('click', function() {
+        localStorage.setItem('mff_notice_confirmed', '1');
         document.getElementById('copyrightOverlay').style.display = 'none';
     });
     /* ─────────────────────────────────────────────────────────── */
