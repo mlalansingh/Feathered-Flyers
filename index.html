@@ -1009,6 +1009,10 @@
 
     function startSession() {
         if (sessionPlayers.length < 7) { alert("Roll Call required — 7+ players needed."); return; }
+        arrivalLog   = [];
+        departureLog = [];
+        localStorage.removeItem('mff_arrival_log');
+        localStorage.removeItem('mff_departure_log');
         showSessionScreen(); generateAssignments();
     }
 
@@ -1212,7 +1216,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 2.77</p>
+                    <p class="sub-screen-header">Version 2.78</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
