@@ -390,7 +390,8 @@
 
     let lastScreen = 'screen-setup'; 
     let currentPlaying = []; 
-    let currentSitting = []; 
+    let currentSitting = [];
+    let courtGroups = [];  // display-only: [[court1players],[court2players],...] 
     let swapCandidate = null; // Stores {id, location}
     let intervalHistory = []; 
     let lastSessionHistory = null;
@@ -447,7 +448,8 @@
             numCourts:           numCourts,
             checkInCounter:      checkInCounter,
             arrivalLog:          arrivalLog,
-            departureLog:        departureLog
+            departureLog:        departureLog,
+            courtGroups:         courtGroups.map(court => court.map(p => Object.assign({}, p)))
         };
         localStorage.setItem('mff_resume_session', JSON.stringify(state));
     }
@@ -578,6 +580,15 @@
         sessionPlayers       = st.sessionPlayers;
         currentPlaying       = st.currentPlaying;
         currentSitting       = st.currentSitting;
+        // Restore courtGroups directly from saved state — preserves court structure after removals
+        courtGroups = st.courtGroups ? st.courtGroups : (() => {
+            const groups = [];
+            const _rCourts = Math.min(Math.floor(currentPlaying.length / 4), numCourts);
+            for (let _c = 0; _c < _rCourts; _c++) {
+                groups.push(currentPlaying.slice(_c * 4, _c * 4 + 4));
+            }
+            return groups;
+        })();
         newArrivals          = st.newArrivals || [];
         currentIntervalCount = st.currentIntervalCount;
         intervalHistory      = st.intervalHistory;
@@ -588,7 +599,12 @@
         // Navigate to session screen and re-render
         const activeCourts = Math.min(Math.floor(sessionPlayers.length / 4), numCourts);
         showSessionScreen();
-        renderSessionUI(activeCourts);
+        if (courtGroups && courtGroups.length > 0) {
+            renderCourts_fromGroups();
+            renderBench(currentSitting);
+        } else {
+            renderSessionUI(activeCourts);
+        }
         renderNewArrivals();
     }
 
@@ -789,6 +805,7 @@
 
         currentPlaying = assignments.flatMap(a => a.playerObjs);
         currentSitting = sitting;
+        courtGroups = assignments.map(a => [...a.playerObjs]); // snapshot per-court for display
         
         const playingIds = new Set(currentPlaying.map(p => p.id));
         sessionPlayers.forEach(p => {
@@ -882,8 +899,32 @@
             p1.sits--; p2.sits++; // Adjust sit counts
         }
 
+        // Sync courtGroups with the swap so display state stays accurate
+        if (cand1.location === 'playing' && cand2.location === 'playing') {
+            // Both on court: swap their slots in courtGroups
+            for (let c = 0; c < courtGroups.length; c++) {
+                const i1 = courtGroups[c].findIndex(p => p.id === cand1.id);
+                if (i1 >= 0) courtGroups[c][i1] = p2;
+                const i2 = courtGroups[c].findIndex(p => p.id === cand2.id);
+                if (i2 >= 0) courtGroups[c][i2] = p1;
+            }
+        } else if (cand1.location === 'playing') {
+            // cand1 left court → replace cand1 in courtGroups with cand2 (p2)
+            for (let c = 0; c < courtGroups.length; c++) {
+                const i = courtGroups[c].findIndex(p => p.id === cand1.id);
+                if (i >= 0) { courtGroups[c][i] = p2; break; }
+            }
+        } else if (cand2.location === 'playing') {
+            // cand2 left court → replace cand2 in courtGroups with cand1 (p1)
+            for (let c = 0; c < courtGroups.length; c++) {
+                const i = courtGroups[c].findIndex(p => p.id === cand2.id);
+                if (i >= 0) { courtGroups[c][i] = p1; break; }
+            }
+        }
+
         updateIntervalHistory();
-        renderSessionUI(Math.floor(currentPlaying.length / 4));
+        renderCourts_fromGroups();
+        renderBench(currentSitting);
     }
 
     // --- MODALS & ALERTS ---
@@ -892,8 +933,23 @@
         if (action === 'nextInterval') msg = "Confirm Reshuffle for next interval?";
         else if (action === 'endSession') msg = "End Session? This will reset all data.";
         else if (action === 'swap') msg = "Confirm player swap?";
+        else if (action === 'resumeSession') msg = "This will restore your last session exactly as it was — courts, bench, and player assignments. The session log and sit counts will continue from where you left off.";
 
         document.getElementById('confirmMessage').innerText = msg;
+
+        // Dynamically label buttons and style message based on action
+        const yesBtn = document.getElementById('confirmYes');
+        const noBtn  = document.getElementById('confirmNo');
+        const msgEl  = document.getElementById('confirmMessage');
+        if (action === 'resumeSession') {
+            yesBtn.innerText      = 'Continue';
+            noBtn.innerText       = 'Cancel';
+            msgEl.style.fontStyle = 'italic';
+        } else {
+            yesBtn.innerText      = 'Yes';
+            noBtn.innerText       = 'No';
+            msgEl.style.fontStyle = 'normal';
+        }
 
         document.getElementById('confirmYes').onclick = () => {
             document.getElementById('confirmModal').style.display = 'none';
@@ -918,6 +974,7 @@
                 executeSwap(payload.cand1, payload.cand2);
                 swapCandidate = null;
             }
+            else if (action === 'resumeSession') { resumeSession(); }
         };
 
         document.getElementById('confirmNo').onclick = () => {
@@ -960,6 +1017,22 @@
     function renderSessionUI(active) {
         renderCourts(currentPlaying, active);
         renderBench(currentSitting);
+    }
+
+    function renderCourts_fromGroups() {
+        // Display-only: renders courts from courtGroups (preserves court structure after player removal)
+        const container = document.getElementById('courts-container');
+        container.innerHTML = "";
+        courtGroups.forEach((group, idx) => {
+            const courtNum = idx + 1;
+            container.innerHTML += `
+                <div class="court-box">
+                    <div class="court-header">Court ${courtNum}</div>
+                    <div class="court-players">
+                        ${group.map(player => `<div class="player-slot" id="player-${player.id}" onclick="startSwapSelect(${player.id}, 'playing')">${player.name}</div>`).join('')}
+                    </div>
+                </div>`;
+        });
     }
 
     function renderCourts(list, active) {
@@ -1020,13 +1093,16 @@
         }
         sessionPlayers = sessionPlayers.filter(p => p.id !== id);
         newArrivals    = newArrivals.filter(p => p.id !== id);
-        // Option A: remove from live court/bench display without reorganizing
         currentPlaying = currentPlaying.filter(p => p.id !== id);
         currentSitting = currentSitting.filter(p => p.id !== id);
-        const activeCourts = Math.min(Math.floor(sessionPlayers.length / 4), numCourts);
-        renderCourts(currentPlaying, activeCourts);
+        // Option A: remove from courtGroups in-place — no reorganizing, no court count change
+        courtGroups = courtGroups.map(court => court.filter(p => p.id !== id));
+        const activeCourts = courtGroups.filter(c => c.length > 0).length;
+        renderCourts_fromGroups();
         renderBench(currentSitting);
         renderSessionRoster(); renderAvailableRollCallPlayers(); renderNewArrivals();
+        // *** PROTECTED — Add/Remove/Resume: persist removal immediately so Resume reflects correct state ***
+        saveSessionState();
     }
 
     function startSession() {
@@ -1230,7 +1306,7 @@
                         <em>No saved session found.</em>
                     </div>
                 </div>
-                <button class="btn btn-success" id="resume-confirm-btn" onclick="resumeSession()" style="display:none; margin-bottom:10px;">Resume</button>
+                <button class="btn btn-success" id="resume-confirm-btn" onclick="showConfirmation('resumeSession')" style="display:none; margin-bottom:10px;">Resume</button>
                 <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
             </div>
 
@@ -1238,7 +1314,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 2.81</p>
+                    <p class="sub-screen-header">Version 2.89</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
