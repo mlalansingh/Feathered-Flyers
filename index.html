@@ -369,21 +369,887 @@
 </style>
     
 <script>
-/*
- * ============================================================
- * CourtFlow — Rotation Manager
- * Developer & Owner: ML
- * Copyright: © 2026 ML. All Rights Reserved.
- * ============================================================
- *
- * This software is proprietary and confidential.
- * Unauthorized copying, distribution, modification, or
- * reverse engineering of this file, in whole or in part,
- * is strictly prohibited without the express written
- * permission of ML.
- * ============================================================
- */
-const _0x3ebe06=_0x3af2;(function(_0x3c3c6a,_0x731660){const _0x3c6a6c=_0x3af2,_0x43ee35=_0x3c3c6a();while(!![]){try{const _0x49c814=parseInt(_0x3c6a6c(0x138))/0x1+parseInt(_0x3c6a6c(0x124))/0x2*(-parseInt(_0x3c6a6c(0x1c4))/0x3)+parseInt(_0x3c6a6c(0x130))/0x4*(parseInt(_0x3c6a6c(0x19b))/0x5)+-parseInt(_0x3c6a6c(0x193))/0x6*(-parseInt(_0x3c6a6c(0x175))/0x7)+-parseInt(_0x3c6a6c(0x121))/0x8*(parseInt(_0x3c6a6c(0x15e))/0x9)+parseInt(_0x3c6a6c(0x191))/0xa*(-parseInt(_0x3c6a6c(0x10b))/0xb)+parseInt(_0x3c6a6c(0x14f))/0xc;if(_0x49c814===_0x731660)break;else _0x43ee35['push'](_0x43ee35['shift']());}catch(_0x166b8f){_0x43ee35['push'](_0x43ee35['shift']());}}}(_0x275b,0x3fbd2));let clubRoster=[{'id':0x2,'name':_0x3ebe06(0x15d)},{'id':0x11,'name':'Ali'},{'id':0x13,'name':'Barry'},{'id':0x19,'name':'Brian'},{'id':0xa,'name':'Eva'},{'id':0xe,'name':_0x3ebe06(0x116)},{'id':0x1,'name':_0x3ebe06(0x19f)},{'id':0x1a,'name':_0x3ebe06(0x13b)},{'id':0xf,'name':_0x3ebe06(0x1a7)},{'id':0xc,'name':_0x3ebe06(0x11d)},{'id':0x4,'name':_0x3ebe06(0x12e)},{'id':0xb,'name':_0x3ebe06(0x1a8)},{'id':0x6,'name':_0x3ebe06(0xf8)},{'id':0x9,'name':_0x3ebe06(0x1b3)},{'id':0x8,'name':_0x3ebe06(0xf2)},{'id':0x3,'name':_0x3ebe06(0xf5)},{'id':0x1b,'name':_0x3ebe06(0x137)},{'id':0x5,'name':_0x3ebe06(0xfb)},{'id':0x7,'name':_0x3ebe06(0x133)},{'id':0x12,'name':_0x3ebe06(0xfc)},{'id':0xd,'name':_0x3ebe06(0x11b)},{'id':0x10,'name':_0x3ebe06(0x163)},{'id':0x1c,'name':_0x3ebe06(0x167)},{'id':0x1d,'name':_0x3ebe06(0x1b1)},{'id':0x15,'name':_0x3ebe06(0x1ad)},{'id':0x16,'name':_0x3ebe06(0x1c3)},{'id':0x17,'name':_0x3ebe06(0xd7)},{'id':0x18,'name':'GUEST\x204'}],sessionPlayers=[],newArrivals=[],numCourts=0x3,intervalDuration=0xf,currentIntervalCount=0x0,checkInCounter=0x0,lastScreen=_0x3ebe06(0x194),currentPlaying=[],currentSitting=[],courtGroups=[],swapCandidate=null,intervalHistory=[],lastSessionHistory=null,arrivalLog=[],departureLog=[];function sortPlayersAlphabetical(_0x27e94f,_0xef7ae2){const _0x979019=_0x3ebe06,_0x37d8d6=_0x27e94f[_0x979019(0xec)]['toUpperCase']()[_0x979019(0x1af)](_0x979019(0x117)),_0x5870f9=_0xef7ae2[_0x979019(0xec)][_0x979019(0xed)]()[_0x979019(0x1af)]('GUEST');if(_0x37d8d6&&!_0x5870f9)return 0x1;if(!_0x37d8d6&&_0x5870f9)return-0x1;return _0x27e94f['name'][_0x979019(0x1b9)](_0xef7ae2[_0x979019(0xec)]);}function toggleBackgroundScroll(_0x9a009f){const _0x41358a=_0x3ebe06;document[_0x41358a(0x126)][_0x41358a(0x145)][_0x41358a(0xef)]=_0x9a009f?_0x41358a(0x1bc):_0x41358a(0x1c0);}function showRollCallScreen(){const _0x1bbecb=_0x3ebe06;document[_0x1bbecb(0xf9)]('.screen.active')[_0x1bbecb(0x199)](_0x5f210c=>_0x5f210c[_0x1bbecb(0x1bf)][_0x1bbecb(0x1bb)](_0x1bbecb(0x144))),document[_0x1bbecb(0x176)](_0x1bbecb(0x16a))['classList'][_0x1bbecb(0x13d)](_0x1bbecb(0x144)),lastScreen=_0x1bbecb(0x16a),renderSessionRoster(),renderAvailableRollCallPlayers();}function showSetupScreen(){const _0x24121c=_0x3ebe06;document['querySelectorAll'](_0x24121c(0xf3))[_0x24121c(0x199)](_0x1ce94e=>_0x1ce94e[_0x24121c(0x1bf)]['remove'](_0x24121c(0x144))),document[_0x24121c(0x176)](_0x24121c(0x194))[_0x24121c(0x1bf)]['add'](_0x24121c(0x144)),lastScreen=_0x24121c(0x194),renderSessionRoster(),renderLastSessionHistory();}function showSessionScreen(){const _0x4ac403=_0x3ebe06;document[_0x4ac403(0xf9)](_0x4ac403(0xf3))[_0x4ac403(0x199)](_0x507608=>_0x507608[_0x4ac403(0x1bf)][_0x4ac403(0x1bb)]('active')),document[_0x4ac403(0x176)](_0x4ac403(0x153))[_0x4ac403(0x1bf)]['add']('active'),lastScreen='screen-session';}function saveSessionState(){const _0x231996=_0x3ebe06,_0x1a271b={'date':new Date()[_0x231996(0x12f)]('en-CA',{'weekday':_0x231996(0x11a),'year':_0x231996(0x154),'month':_0x231996(0x11a),'day':_0x231996(0x154)}),'sessionPlayers':sessionPlayers[_0x231996(0xde)](_0x5aca8a=>Object[_0x231996(0x151)]({},_0x5aca8a)),'currentPlaying':currentPlaying[_0x231996(0xde)](_0x2a06eb=>Object[_0x231996(0x151)]({},_0x2a06eb)),'currentSitting':currentSitting[_0x231996(0xde)](_0x56c190=>Object[_0x231996(0x151)]({},_0x56c190)),'newArrivals':newArrivals[_0x231996(0xde)](_0x54f06e=>Object[_0x231996(0x151)]({},_0x54f06e)),'currentIntervalCount':currentIntervalCount,'intervalHistory':JSON[_0x231996(0x14c)](JSON[_0x231996(0x1ba)](intervalHistory)),'numCourts':numCourts,'checkInCounter':checkInCounter,'arrivalLog':arrivalLog,'departureLog':departureLog,'courtGroups':courtGroups[_0x231996(0xde)](_0x4a1079=>_0x4a1079[_0x231996(0xde)](_0x1c4f0a=>Object[_0x231996(0x151)]({},_0x1c4f0a)))};localStorage[_0x231996(0x10e)](_0x231996(0xf6),JSON[_0x231996(0x1ba)](_0x1a271b));}function showSettingsScreen(){const _0x2b30eb=_0x3ebe06;document['querySelectorAll'](_0x2b30eb(0xf3))[_0x2b30eb(0x199)](_0x39d036=>_0x39d036[_0x2b30eb(0x1bf)][_0x2b30eb(0x1bb)](_0x2b30eb(0x144))),document[_0x2b30eb(0x176)](_0x2b30eb(0x170))[_0x2b30eb(0x1bf)][_0x2b30eb(0x13d)](_0x2b30eb(0x144));}function backFromSettings(){const _0x25c3b6=_0x3ebe06;document[_0x25c3b6(0xf9)](_0x25c3b6(0xf3))[_0x25c3b6(0x199)](_0x7a71de=>_0x7a71de[_0x25c3b6(0x1bf)]['remove'](_0x25c3b6(0x144))),document[_0x25c3b6(0x176)](lastScreen)[_0x25c3b6(0x1bf)][_0x25c3b6(0x13d)](_0x25c3b6(0x144));}function backToSettingsMenu(){const _0x40a6b4=_0x3ebe06;document[_0x40a6b4(0xf9)](_0x40a6b4(0xf3))[_0x40a6b4(0x199)](_0x3ef28b=>_0x3ef28b[_0x40a6b4(0x1bf)][_0x40a6b4(0x1bb)](_0x40a6b4(0x144))),document[_0x40a6b4(0x176)](_0x40a6b4(0x170))[_0x40a6b4(0x1bf)][_0x40a6b4(0x13d)](_0x40a6b4(0x144));}function _0x3af2(_0x314a1f,_0x42f86c){_0x314a1f=_0x314a1f-0xd7;const _0x275b39=_0x275b();let _0x3af29f=_0x275b39[_0x314a1f];if(_0x3af2['AVSkPd']===undefined){var _0x332369=function(_0x3cb058){const _0x218411='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=';let _0x27e94f='',_0xef7ae2='';for(let _0x37d8d6=0x0,_0x5870f9,_0x9a009f,_0x5f210c=0x0;_0x9a009f=_0x3cb058['charAt'](_0x5f210c++);~_0x9a009f&&(_0x5870f9=_0x37d8d6%0x4?_0x5870f9*0x40+_0x9a009f:_0x9a009f,_0x37d8d6++%0x4)?_0x27e94f+=String['fromCharCode'](0xff&_0x5870f9>>(-0x2*_0x37d8d6&0x6)):0x0){_0x9a009f=_0x218411['indexOf'](_0x9a009f);}for(let _0x1ce94e=0x0,_0x507608=_0x27e94f['length'];_0x1ce94e<_0x507608;_0x1ce94e++){_0xef7ae2+='%'+('00'+_0x27e94f['charCodeAt'](_0x1ce94e)['toString'](0x10))['slice'](-0x2);}return decodeURIComponent(_0xef7ae2);};_0x3af2['Wsocdf']=_0x332369,_0x3af2['COvDkn']={},_0x3af2['AVSkPd']=!![];}const _0x66773b=_0x275b39[0x0],_0x165033=_0x314a1f+_0x66773b,_0xb21793=_0x3af2['COvDkn'][_0x165033];return!_0xb21793?(_0x3af29f=_0x3af2['Wsocdf'](_0x3af29f),_0x3af2['COvDkn'][_0x165033]=_0x3af29f):_0x3af29f=_0xb21793,_0x3af29f;}function showSettingsCourts(){const _0x204fd8=_0x3ebe06;document[_0x204fd8(0xf9)](_0x204fd8(0xf3))[_0x204fd8(0x199)](_0x19debf=>_0x19debf[_0x204fd8(0x1bf)][_0x204fd8(0x1bb)]('active')),document[_0x204fd8(0x176)](_0x204fd8(0x17b))['value']=numCourts,document[_0x204fd8(0x176)]('screen-settings-courts')[_0x204fd8(0x1bf)][_0x204fd8(0x13d)](_0x204fd8(0x144));}function saveCourtSettings(){const _0x1a31c4=_0x3ebe06;numCourts=parseInt(document['getElementById'](_0x1a31c4(0x17b))[_0x1a31c4(0x110)])||0x3,backToSettingsMenu();}function showSettingsRoster(){const _0x53e9d3=_0x3ebe06;document[_0x53e9d3(0xf9)](_0x53e9d3(0xf3))[_0x53e9d3(0x199)](_0xd26cf5=>_0xd26cf5['classList'][_0x53e9d3(0x1bb)]('active')),renderClubRosterManagement(),document[_0x53e9d3(0x176)]('screen-settings-roster')['classList'][_0x53e9d3(0x13d)]('active');}function showPreviousSessionInfo(){const _0x5292fa=_0x3ebe06;document[_0x5292fa(0xf9)](_0x5292fa(0xf3))[_0x5292fa(0x199)](_0x2c9e45=>_0x2c9e45[_0x5292fa(0x1bf)][_0x5292fa(0x1bb)](_0x5292fa(0x144)));const _0x3b5e06=document[_0x5292fa(0x176)]('settings-sit-counts'),_0x513176=document[_0x5292fa(0x176)](_0x5292fa(0x19d)),_0x14f58c=localStorage[_0x5292fa(0x109)]('mff_last_sit_counts'),_0x2b1509=localStorage[_0x5292fa(0x109)]('mff_last_session_date');if(_0x14f58c&&_0x3b5e06){const _0x56f0c4=JSON['parse'](_0x14f58c);_0x3b5e06[_0x5292fa(0x16b)]=_0x56f0c4[_0x5292fa(0xde)](_0x1ded68=>_0x5292fa(0xe6)+_0x1ded68[_0x5292fa(0xec)]+'</span><span>Sits:\x20<strong>'+_0x1ded68[_0x5292fa(0xd9)]+_0x5292fa(0x104))[_0x5292fa(0x146)]('');}if(_0x513176)_0x513176[_0x5292fa(0x15a)]=_0x2b1509?_0x5292fa(0x114)+_0x2b1509:'';renderLastSessionHistory(),document[_0x5292fa(0x176)](_0x5292fa(0x1b2))[_0x5292fa(0x1bf)][_0x5292fa(0x13d)](_0x5292fa(0x144));}function showCurrentSessionInfo(){const _0x2ea603=_0x3ebe06;document[_0x2ea603(0xf9)]('.screen.active')[_0x2ea603(0x199)](_0x5097d3=>_0x5097d3['classList'][_0x2ea603(0x1bb)](_0x2ea603(0x144)));const _0x2e90f2=document['getElementById'](_0x2ea603(0xf7));if(_0x2e90f2)_0x2e90f2[_0x2ea603(0x15a)]=currentIntervalCount>0x0?_0x2ea603(0xf4)+currentIntervalCount:'No\x20session\x20in\x20progress.';const _0x47df44=document[_0x2ea603(0x176)]('current-session-sit-counts');if(_0x47df44){if(sessionPlayers[_0x2ea603(0x17c)]>0x0){const _0x3cd489=[...sessionPlayers][_0x2ea603(0x171)]((_0x3b22a5,_0x5d16c8)=>_0x5d16c8[_0x2ea603(0xd9)]-(_0x5d16c8['joinSits']||0x0)-(_0x3b22a5[_0x2ea603(0xd9)]-(_0x3b22a5[_0x2ea603(0x18d)]||0x0)));_0x47df44[_0x2ea603(0x16b)]=_0x3cd489[_0x2ea603(0xde)](_0x14b6a7=>{const _0xab6433=_0x2ea603,_0x3e165b=_0x14b6a7['sits']-(_0x14b6a7[_0xab6433(0x18d)]||0x0);return _0xab6433(0xe6)+_0x14b6a7['name']+_0xab6433(0x179)+_0x3e165b+_0xab6433(0x104);})[_0x2ea603(0x146)]('');}else _0x47df44[_0x2ea603(0x16b)]=_0x2ea603(0x16f);}const _0xf4861e=document[_0x2ea603(0x176)](_0x2ea603(0x166));if(_0xf4861e){if(intervalHistory[_0x2ea603(0x17c)]>0x0){let _0x32d73d='';[...intervalHistory][_0x2ea603(0x186)]()['forEach'](_0x52d284=>{const _0x2baaaf=_0x2ea603,_0xc41205=buildEventLines(_0x52d284[_0x2baaaf(0x102)]);_0x32d73d+=_0x2baaaf(0x11e)+_0x52d284['interval']+_0x2baaaf(0xff)+_0x52d284[_0x2baaaf(0x143)][_0x2baaaf(0xde)](_0x3e4b85=>_0x2baaaf(0x118)+_0x3e4b85[_0x2baaaf(0x1c2)]+':\x20'+_0x3e4b85[_0x2baaaf(0x1aa)][_0x2baaaf(0x146)](',\x20')+'</p>')['join']('')+(_0x2baaaf(0x1a3)+(_0x52d284[_0x2baaaf(0x192)][_0x2baaaf(0x146)](',\x20')||_0x2baaaf(0x10f))+_0x2baaaf(0x1ab))+_0xc41205+_0x2baaaf(0x19e);}),_0xf4861e['innerHTML']=_0x32d73d;}else _0xf4861e['innerHTML']=_0x2ea603(0x123);}document[_0x2ea603(0x176)](_0x2ea603(0x152))[_0x2ea603(0x1bf)][_0x2ea603(0x13d)](_0x2ea603(0x144));}function showSettingsResume(){const _0x5ddff1=_0x3ebe06;document[_0x5ddff1(0xf9)](_0x5ddff1(0xf3))[_0x5ddff1(0x199)](_0x20daff=>_0x20daff[_0x5ddff1(0x1bf)][_0x5ddff1(0x1bb)](_0x5ddff1(0x144)));const _0x4f1f4a=localStorage[_0x5ddff1(0x109)](_0x5ddff1(0xf6)),_0x29e217=document[_0x5ddff1(0x176)](_0x5ddff1(0x101)),_0x27e8d9=document['getElementById'](_0x5ddff1(0xdf));if(_0x4f1f4a){const _0xcd04eb=JSON[_0x5ddff1(0x14c)](_0x4f1f4a),_0x11a450=_0xcd04eb['newArrivals']&&_0xcd04eb[_0x5ddff1(0x164)][_0x5ddff1(0x17c)]>0x0?'<p\x20style=\x22margin-bottom:8px;\x22><strong>Waiting\x20(New\x20Arrivals):</strong>\x20'+_0xcd04eb[_0x5ddff1(0x164)]['map'](_0x497c40=>_0x497c40['name'])['join'](',\x20')+'</p>':'';_0x29e217['innerHTML']=_0x5ddff1(0x195)+_0xcd04eb[_0x5ddff1(0xee)]+_0x5ddff1(0x1ab)+('<p\x20style=\x22margin-bottom:8px;\x22><strong>Players\x20checked\x20in:</strong>\x20'+_0xcd04eb['sessionPlayers'][_0x5ddff1(0x17c)]+_0x5ddff1(0x1ab))+(_0x5ddff1(0xea)+_0xcd04eb[_0x5ddff1(0x1a9)]+_0x5ddff1(0x1ab))+(_0x5ddff1(0x16d)+_0xcd04eb['numCourts']+_0x5ddff1(0x1ab))+_0x11a450+'<p\x20style=\x22margin-top:12px;\x20color:var(--secondary);\x20font-size:0.85rem;\x22>Tap\x20Resume\x20to\x20continue\x20from\x20where\x20you\x20left\x20off.</p>',_0x27e8d9[_0x5ddff1(0x145)]['display']='block';}else _0x29e217[_0x5ddff1(0x16b)]='<em>No\x20saved\x20session\x20found.</em>',_0x27e8d9[_0x5ddff1(0x145)][_0x5ddff1(0x140)]=_0x5ddff1(0x168);document[_0x5ddff1(0x176)](_0x5ddff1(0x1a4))[_0x5ddff1(0x1bf)][_0x5ddff1(0x13d)]('active');}function resumeSession(){const _0x423837=_0x3ebe06,_0xc704f1=localStorage[_0x423837(0x109)]('mff_resume_session');if(!_0xc704f1)return;const _0x9d354f=JSON[_0x423837(0x14c)](_0xc704f1);sessionPlayers=_0x9d354f[_0x423837(0x120)],currentPlaying=_0x9d354f[_0x423837(0x188)],currentSitting=_0x9d354f[_0x423837(0xda)],courtGroups=_0x9d354f[_0x423837(0x13a)]?_0x9d354f[_0x423837(0x13a)]:((()=>{const _0x3da0fe=_0x423837,_0x154002=[],_0x1879a8=Math[_0x3da0fe(0x18f)](Math[_0x3da0fe(0x184)](currentPlaying['length']/0x4),numCourts);for(let _0x342978=0x0;_0x342978<_0x1879a8;_0x342978++){_0x154002[_0x3da0fe(0x147)](currentPlaying[_0x3da0fe(0x15f)](_0x342978*0x4,_0x342978*0x4+0x4));}return _0x154002;})()),newArrivals=_0x9d354f[_0x423837(0x164)]||[],currentIntervalCount=_0x9d354f[_0x423837(0x1a9)],intervalHistory=_0x9d354f[_0x423837(0x13f)],numCourts=_0x9d354f[_0x423837(0xe0)],checkInCounter=_0x9d354f[_0x423837(0x165)],arrivalLog=_0x9d354f['arrivalLog']||[],departureLog=_0x9d354f[_0x423837(0x17e)]||[];const _0x24f362=Math['min'](Math[_0x423837(0x184)](sessionPlayers['length']/0x4),numCourts);showSessionScreen(),courtGroups&&courtGroups['length']>0x0?(renderCourts_fromGroups(),renderBench(currentSitting)):renderSessionUI(_0x24f362),renderNewArrivals();}function buildEventLines(_0x221df0){const _0x5e1962=_0x3ebe06,_0x67ca4f=_0x221df0+0x1,_0x43deac=arrivalLog['filter'](_0x46b601=>_0x46b601['beforeInterval']===_0x67ca4f)[_0x5e1962(0xde)](_0x51290c=>_0x51290c[_0x5e1962(0xec)]),_0x3c87c3=departureLog[_0x5e1962(0x10c)](_0x5182c3=>_0x5182c3[_0x5e1962(0x14d)]===_0x67ca4f)['map'](_0x504c32=>_0x504c32['name']);let _0x44a385='';if(_0x43deac[_0x5e1962(0x17c)]||_0x3c87c3[_0x5e1962(0x17c)]){_0x44a385+=_0x5e1962(0x1b0);if(_0x43deac['length'])_0x44a385+=_0x5e1962(0x141)+_0x43deac[_0x5e1962(0x146)](',\x20')+_0x5e1962(0x1b8);if(_0x3c87c3[_0x5e1962(0x17c)])_0x44a385+=_0x5e1962(0xfa)+_0x3c87c3[_0x5e1962(0x146)](',\x20')+_0x5e1962(0x1a5);_0x44a385+=_0x5e1962(0x19e);}return _0x44a385;}function showSettingsAbout(){const _0x28bc38=_0x3ebe06;document[_0x28bc38(0xf9)](_0x28bc38(0xf3))[_0x28bc38(0x199)](_0x2617fb=>_0x2617fb[_0x28bc38(0x1bf)]['remove']('active')),document[_0x28bc38(0x176)](_0x28bc38(0xfd))[_0x28bc38(0x1bf)]['add']('active');}function renderSessionRoster(){const _0x232d49=_0x3ebe06,_0x4b609e=document[_0x232d49(0x176)](_0x232d49(0x128)),_0x41a7db=document[_0x232d49(0x176)](_0x232d49(0x172)),_0x14912c=document['getElementById'](_0x232d49(0x156)),_0x1b3be3=[...sessionPlayers][_0x232d49(0x171)]((_0x419d89,_0x398a09)=>_0x419d89[_0x232d49(0x14b)]-_0x398a09[_0x232d49(0x14b)]);if(_0x14912c)_0x14912c[_0x232d49(0x139)]='Checked-In:\x20'+sessionPlayers[_0x232d49(0x17c)]+'\x20Players';let _0x358913=_0x1b3be3[_0x232d49(0xde)](_0x2acfb9=>'\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22player-row\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span>'+_0x2acfb9['name']+_0x232d49(0x149)+_0x2acfb9['id']+')\x22>✕</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20')[_0x232d49(0x146)]('');if(_0x4b609e)_0x4b609e[_0x232d49(0x16b)]=_0x358913||_0x232d49(0x18a);if(_0x41a7db){const _0x268c1e=_0x1b3be3['map'](_0x2db572=>_0x232d49(0x122)+_0x2db572[_0x232d49(0xec)]+'</div>')['join']('');_0x41a7db['innerHTML']=sessionPlayers[_0x232d49(0x17c)]>0x0?_0x268c1e:_0x232d49(0x106);const _0x58063b=_0x41a7db[_0x232d49(0x112)](_0x232d49(0x12b))[_0x232d49(0x189)]('h3');if(_0x58063b)_0x58063b[_0x232d49(0x139)]=_0x232d49(0x190)+sessionPlayers['length']+_0x232d49(0x182);}}function renderLastSessionHistory(){const _0x319328=_0x3ebe06,_0x64f945=document[_0x319328(0x176)](_0x319328(0x16e)),_0x32f2f5=document['getElementById']('settings-clear-log-btn');if(!lastSessionHistory||lastSessionHistory[_0x319328(0x17c)]===0x0)return;if(_0x32f2f5)_0x32f2f5[_0x319328(0x145)][_0x319328(0x140)]=_0x319328(0x1b5);let _0x3e0d6c='';[...lastSessionHistory][_0x319328(0x186)]()['forEach'](_0x25e8a4=>{const _0x5999b2=_0x319328,_0x475fb4=buildEventLines(_0x25e8a4[_0x5999b2(0x102)]);_0x3e0d6c+=_0x5999b2(0xd8)+_0x25e8a4[_0x5999b2(0x102)]+_0x5999b2(0x183)+_0x25e8a4[_0x5999b2(0x143)][_0x5999b2(0xde)](_0x2739f3=>_0x5999b2(0x15c)+_0x2739f3[_0x5999b2(0x1c2)]+_0x5999b2(0x148)+_0x2739f3['players'][_0x5999b2(0x146)](',\x20')+'</p>')[_0x5999b2(0x146)]('')+'\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<p\x20style=\x22margin:\x203px\x200;\x20padding-left:\x205px;\x20font-style:\x20italic;\x20color:\x20var(--secondary);\x20border-top:\x201px\x20dotted\x20#ddd;\x20padding-top:\x205px;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<strong>Sat\x20Out:</strong>\x20'+(_0x25e8a4[_0x5999b2(0x192)]&&_0x25e8a4[_0x5999b2(0x192)][_0x5999b2(0x17c)]>0x0?_0x25e8a4[_0x5999b2(0x192)]['join'](',\x20'):_0x5999b2(0x10f))+_0x5999b2(0xe2)+_0x475fb4+_0x5999b2(0x1ae);});if(_0x64f945)_0x64f945[_0x319328(0x16b)]=_0x3e0d6c;}function clearSavedHistory(){const _0x57fd94=_0x3ebe06;localStorage[_0x57fd94(0x125)](_0x57fd94(0x131)),localStorage[_0x57fd94(0x125)](_0x57fd94(0xdc)),localStorage['removeItem']('mff_last_session_date'),lastSessionHistory=null;const _0x20d280=document[_0x57fd94(0x176)](_0x57fd94(0x16e)),_0x5374b2=document['getElementById'](_0x57fd94(0x11c)),_0x439d64=document[_0x57fd94(0x176)](_0x57fd94(0x1bd)),_0x836767=document[_0x57fd94(0x176)]('settings-sit-count-date'),_0x29bf3b=document[_0x57fd94(0x176)](_0x57fd94(0x1b4));if(_0x20d280)_0x20d280[_0x57fd94(0x16b)]=_0x57fd94(0x1a1);if(_0x5374b2)_0x5374b2[_0x57fd94(0x16b)]=_0x57fd94(0x13c);if(_0x439d64)_0x439d64[_0x57fd94(0x145)]['display']='none';if(_0x836767)_0x836767[_0x57fd94(0x15a)]='';if(_0x29bf3b)_0x29bf3b['textContent']='';}function calculatePairingScore(_0x20dd9c,_0x666e82){const _0x25b79a=_0x3ebe06;let _0x4743bd=0x0;const _0x28d21b=sessionPlayers[_0x25b79a(0x17a)](_0x6027f6=>_0x6027f6['id']===_0x20dd9c)?.[_0x25b79a(0xec)],_0xb4acca=sessionPlayers[_0x25b79a(0x17a)](_0x225be1=>_0x225be1['id']===_0x666e82)?.['name'];return intervalHistory['forEach'](_0x2af1eb=>{const _0x317ef3=_0x25b79a;_0x2af1eb[_0x317ef3(0x143)][_0x317ef3(0x199)](_0x4331a0=>{const _0x4cc286=_0x317ef3;_0x4331a0[_0x4cc286(0x1aa)]['includes'](_0x28d21b)&&_0x4331a0[_0x4cc286(0x1aa)][_0x4cc286(0x1a6)](_0xb4acca)&&_0x4743bd++;});}),_0x4743bd===0x0?0x0:Math[_0x25b79a(0x196)](0xa,_0x4743bd);}function generateAssignments(){const _0x1db2a7=_0x3ebe06;currentIntervalCount++;if(newArrivals['length']>0x0){const _0x5af924=sessionPlayers[_0x1db2a7(0x17c)]>0x0?Math['max'](...sessionPlayers[_0x1db2a7(0xde)](_0x497f6c=>_0x497f6c[_0x1db2a7(0xd9)])):0x0;newArrivals[_0x1db2a7(0x199)](_0x402870=>{const _0x727bee=_0x1db2a7;_0x402870['sits']=_0x5af924+0x1,_0x402870[_0x727bee(0x18d)]=_0x5af924+0x1;}),sessionPlayers['push'](...newArrivals),newArrivals=[],renderNewArrivals();}const _0x5826ff=Math[_0x1db2a7(0x18f)](Math[_0x1db2a7(0x184)](sessionPlayers['length']/0x4),numCourts),_0x377730=_0x5826ff*0x4,_0x3fe39b=intervalHistory[_0x1db2a7(0x17c)]>0x0?intervalHistory[intervalHistory['length']-0x1][_0x1db2a7(0x192)]:[];sessionPlayers['forEach'](_0x41ecec=>_0x41ecec[_0x1db2a7(0x181)]=_0x3fe39b[_0x1db2a7(0x1a6)](_0x41ecec[_0x1db2a7(0xec)]));for(let _0x4fe1a7=sessionPlayers[_0x1db2a7(0x17c)]-0x1;_0x4fe1a7>0x0;_0x4fe1a7--){const _0x1cc01e=Math[_0x1db2a7(0x184)](Math[_0x1db2a7(0x108)]()*(_0x4fe1a7+0x1));[sessionPlayers[_0x4fe1a7],sessionPlayers[_0x1cc01e]]=[sessionPlayers[_0x1cc01e],sessionPlayers[_0x4fe1a7]];}sessionPlayers[_0x1db2a7(0x171)]((_0xef60e4,_0x2a8b32)=>{const _0x4a2d75=_0x1db2a7;if(_0xef60e4['mustPlay']&&!_0x2a8b32[_0x4a2d75(0x181)])return-0x1;if(!_0xef60e4[_0x4a2d75(0x181)]&&_0x2a8b32[_0x4a2d75(0x181)])return 0x1;return _0x2a8b32[_0x4a2d75(0xd9)]-_0xef60e4[_0x4a2d75(0xd9)];});let _0x13d697=sessionPlayers[_0x1db2a7(0x15f)](0x0,_0x377730),_0x10107c=sessionPlayers['slice'](_0x377730),_0x198e42=[],_0x2ee2da=[];for(let _0x594ed1=0x0;_0x594ed1<_0x5826ff;_0x594ed1++){_0x2ee2da['push'](_0x13d697[_0x1db2a7(0x15f)](_0x594ed1*0x4,(_0x594ed1+0x1)*0x4));}function _0x5d2ec5(_0x374466){const _0x395d7d=_0x1db2a7;let _0xe68d1e=0x0;return _0x374466[_0x395d7d(0x199)](_0x3adbf5=>{const _0x364c86=_0x395d7d;for(let _0x51030f=0x0;_0x51030f<_0x3adbf5[_0x364c86(0x17c)];_0x51030f++){for(let _0x5cd876=_0x51030f+0x1;_0x5cd876<_0x3adbf5[_0x364c86(0x17c)];_0x5cd876++){_0xe68d1e+=calculatePairingScore(_0x3adbf5[_0x51030f]['id'],_0x3adbf5[_0x5cd876]['id']);}}}),_0xe68d1e;}let _0x4b374b=_0x5d2ec5(_0x2ee2da);for(let _0x561b3c=0x0;_0x561b3c<0x3e8;_0x561b3c++){let _0x1f2904=Math[_0x1db2a7(0x184)](Math[_0x1db2a7(0x108)]()*_0x5826ff),_0x519c24=Math[_0x1db2a7(0x184)](Math[_0x1db2a7(0x108)]()*_0x5826ff);if(_0x1f2904===_0x519c24)continue;let _0x284f60=Math['floor'](Math[_0x1db2a7(0x108)]()*0x4),_0x2e6303=Math['floor'](Math[_0x1db2a7(0x108)]()*0x4),_0x140f84=_0x2ee2da[_0x1f2904][_0x284f60];_0x2ee2da[_0x1f2904][_0x284f60]=_0x2ee2da[_0x519c24][_0x2e6303],_0x2ee2da[_0x519c24][_0x2e6303]=_0x140f84;let _0x3ceac7=_0x5d2ec5(_0x2ee2da);_0x3ceac7<_0x4b374b?_0x4b374b=_0x3ceac7:(_0x140f84=_0x2ee2da[_0x1f2904][_0x284f60],_0x2ee2da[_0x1f2904][_0x284f60]=_0x2ee2da[_0x519c24][_0x2e6303],_0x2ee2da[_0x519c24][_0x2e6303]=_0x140f84);}for(let _0x4732e3=0x0;_0x4732e3<_0x5826ff;_0x4732e3++){_0x198e42['push']({'court':_0x4732e3+0x1,'players':_0x2ee2da[_0x4732e3][_0x1db2a7(0xde)](_0x1d444c=>_0x1d444c[_0x1db2a7(0xec)]),'playerObjs':_0x2ee2da[_0x4732e3]});}currentPlaying=_0x198e42[_0x1db2a7(0x15b)](_0xdaa2bd=>_0xdaa2bd[_0x1db2a7(0x111)]),currentSitting=_0x10107c,courtGroups=_0x198e42['map'](_0x30286b=>[..._0x30286b[_0x1db2a7(0x111)]]);const _0x2de88a=new Set(currentPlaying[_0x1db2a7(0xde)](_0x22055d=>_0x22055d['id']));sessionPlayers[_0x1db2a7(0x199)](_0x9291a0=>{const _0x768e17=_0x1db2a7;!_0x2de88a[_0x768e17(0xdb)](_0x9291a0['id'])&&_0x9291a0[_0x768e17(0xd9)]++;}),updateIntervalHistory(),renderSessionUI(_0x5826ff);}function updateIntervalHistory(){const _0x1f4275=_0x3ebe06,_0x29a4cd=Math[_0x1f4275(0x184)](currentPlaying[_0x1f4275(0x17c)]/0x4);let _0x25b6f1=[];for(let _0x53f15f=0x0;_0x53f15f<_0x29a4cd;_0x53f15f++){_0x25b6f1[_0x1f4275(0x147)]({'court':_0x53f15f+0x1,'players':currentPlaying[_0x1f4275(0x15f)](_0x53f15f*0x4,(_0x53f15f+0x1)*0x4)[_0x1f4275(0xde)](_0x3459fd=>_0x3459fd[_0x1f4275(0xec)])});}const _0x409620={'interval':currentIntervalCount,'courts':_0x25b6f1,'sitting':currentSitting[_0x1f4275(0xde)](_0x534171=>_0x534171[_0x1f4275(0xec)])};intervalHistory[_0x1f4275(0x17c)]<currentIntervalCount?intervalHistory['push'](_0x409620):intervalHistory[currentIntervalCount-0x1]=_0x409620;}function startSwapSelect(_0x571b23,_0xa677b5){const _0x5dfd50=_0x3ebe06,_0x4c9e27=document[_0x5dfd50(0x176)](_0x5dfd50(0x135)+_0x571b23);if(swapCandidate&&swapCandidate['id']===_0x571b23){_0x4c9e27[_0x5dfd50(0x1bf)][_0x5dfd50(0x1bb)](_0x5dfd50(0x103)),swapCandidate=null;return;}if(!swapCandidate)swapCandidate={'id':_0x571b23,'location':_0xa677b5},_0x4c9e27['classList'][_0x5dfd50(0x13d)](_0x5dfd50(0x103));else{const _0x400b38={'id':_0x571b23,'location':_0xa677b5};showConfirmation(_0x5dfd50(0x142),{'cand1':swapCandidate,'cand2':_0x400b38});}}function executeSwap(_0xc0d356,_0x4335c9){const _0x37eac4=_0x3ebe06;let _0x247185,_0x3f8fc4,_0x30f41d,_0x1200f0;_0xc0d356[_0x37eac4(0xe7)]===_0x37eac4(0x14a)?(_0x30f41d=currentPlaying[_0x37eac4(0x115)](_0x465de9=>_0x465de9['id']===_0xc0d356['id']),_0x247185=currentPlaying[_0x30f41d]):(_0x30f41d=currentSitting[_0x37eac4(0x115)](_0x991c29=>_0x991c29['id']===_0xc0d356['id']),_0x247185=currentSitting[_0x30f41d]);_0x4335c9[_0x37eac4(0xe7)]===_0x37eac4(0x14a)?(_0x1200f0=currentPlaying[_0x37eac4(0x115)](_0xf8a085=>_0xf8a085['id']===_0x4335c9['id']),_0x3f8fc4=currentPlaying[_0x1200f0]):(_0x1200f0=currentSitting['findIndex'](_0x19a272=>_0x19a272['id']===_0x4335c9['id']),_0x3f8fc4=currentSitting[_0x1200f0]);if(_0xc0d356[_0x37eac4(0xe7)]===_0x37eac4(0x14a)&&_0x4335c9[_0x37eac4(0xe7)]===_0x37eac4(0x14a))[currentPlaying[_0x30f41d],currentPlaying[_0x1200f0]]=[currentPlaying[_0x1200f0],currentPlaying[_0x30f41d]];else{if(_0xc0d356[_0x37eac4(0xe7)]===_0x37eac4(0x192)&&_0x4335c9[_0x37eac4(0xe7)]==='sitting')[currentSitting[_0x30f41d],currentSitting[_0x1200f0]]=[currentSitting[_0x1200f0],currentSitting[_0x30f41d]];else _0xc0d356[_0x37eac4(0xe7)]===_0x37eac4(0x14a)&&_0x4335c9[_0x37eac4(0xe7)]===_0x37eac4(0x192)?(currentPlaying[_0x30f41d]=_0x3f8fc4,currentSitting[_0x1200f0]=_0x247185,_0x247185[_0x37eac4(0xd9)]++,_0x3f8fc4[_0x37eac4(0xd9)]--):(currentSitting[_0x30f41d]=_0x3f8fc4,currentPlaying[_0x1200f0]=_0x247185,_0x247185[_0x37eac4(0xd9)]--,_0x3f8fc4['sits']++);}if(_0xc0d356['location']===_0x37eac4(0x14a)&&_0x4335c9[_0x37eac4(0xe7)]===_0x37eac4(0x14a))for(let _0x3a1788=0x0;_0x3a1788<courtGroups[_0x37eac4(0x17c)];_0x3a1788++){const _0x38dcf5=courtGroups[_0x3a1788][_0x37eac4(0x115)](_0x579ec7=>_0x579ec7['id']===_0xc0d356['id']);if(_0x38dcf5>=0x0)courtGroups[_0x3a1788][_0x38dcf5]=_0x3f8fc4;const _0x117416=courtGroups[_0x3a1788][_0x37eac4(0x115)](_0x1b9e05=>_0x1b9e05['id']===_0x4335c9['id']);if(_0x117416>=0x0)courtGroups[_0x3a1788][_0x117416]=_0x247185;}else{if(_0xc0d356[_0x37eac4(0xe7)]===_0x37eac4(0x14a))for(let _0x1a1b08=0x0;_0x1a1b08<courtGroups[_0x37eac4(0x17c)];_0x1a1b08++){const _0x203079=courtGroups[_0x1a1b08][_0x37eac4(0x115)](_0x543083=>_0x543083['id']===_0xc0d356['id']);if(_0x203079>=0x0){courtGroups[_0x1a1b08][_0x203079]=_0x3f8fc4;break;}}else{if(_0x4335c9[_0x37eac4(0xe7)]===_0x37eac4(0x14a))for(let _0x395079=0x0;_0x395079<courtGroups['length'];_0x395079++){const _0x1fe73b=courtGroups[_0x395079][_0x37eac4(0x115)](_0x75bf85=>_0x75bf85['id']===_0x4335c9['id']);if(_0x1fe73b>=0x0){courtGroups[_0x395079][_0x1fe73b]=_0x247185;break;}}}}updateIntervalHistory(),renderCourts_fromGroups(),renderBench(currentSitting);}function showConfirmation(_0x50a253,_0x5df61e=null){const _0x27a5a6=_0x3ebe06;let _0x5b9b35='';if(_0x50a253===_0x27a5a6(0x17f))_0x5b9b35=_0x27a5a6(0x1a2);else{if(_0x50a253==='endSession')_0x5b9b35=_0x27a5a6(0x174);else{if(_0x50a253==='swap')_0x5b9b35='Confirm\x20player\x20swap?';else{if(_0x50a253==='resumeSession')_0x5b9b35='This\x20will\x20restore\x20your\x20last\x20session\x20exactly\x20as\x20it\x20was\x20—\x20courts,\x20bench,\x20and\x20player\x20assignments.\x20The\x20session\x20log\x20and\x20sit\x20counts\x20will\x20continue\x20from\x20where\x20you\x20left\x20off.';}}}document[_0x27a5a6(0x176)](_0x27a5a6(0x198))['innerText']=_0x5b9b35;const _0x359c18=document['getElementById']('confirmYes'),_0x3414fe=document['getElementById'](_0x27a5a6(0x1b7)),_0x5dd727=document[_0x27a5a6(0x176)]('confirmMessage');_0x50a253===_0x27a5a6(0x160)?(_0x359c18[_0x27a5a6(0x139)]=_0x27a5a6(0x12c),_0x3414fe[_0x27a5a6(0x139)]=_0x27a5a6(0x162),_0x5dd727[_0x27a5a6(0x145)][_0x27a5a6(0x18e)]=_0x27a5a6(0xfe)):(_0x359c18[_0x27a5a6(0x139)]=_0x27a5a6(0x16c),_0x3414fe[_0x27a5a6(0x139)]='No',_0x5dd727[_0x27a5a6(0x145)][_0x27a5a6(0x18e)]=_0x27a5a6(0x177)),document[_0x27a5a6(0x176)](_0x27a5a6(0x1c1))[_0x27a5a6(0x169)]=()=>{const _0x3b4dcf=_0x27a5a6;document['getElementById']('confirmModal')[_0x3b4dcf(0x145)][_0x3b4dcf(0x140)]=_0x3b4dcf(0x168);if(_0x50a253===_0x3b4dcf(0x17f))generateAssignments(),saveSessionState();else{if(_0x50a253===_0x3b4dcf(0xf1)){if(intervalHistory[_0x3b4dcf(0x17c)]>0x0){localStorage[_0x3b4dcf(0x10e)](_0x3b4dcf(0x131),JSON[_0x3b4dcf(0x1ba)](intervalHistory));const _0xd5ebc5=sessionPlayers[_0x3b4dcf(0xde)](_0x56079b=>({'name':_0x56079b['name'],'sits':_0x56079b[_0x3b4dcf(0xd9)]-(_0x56079b[_0x3b4dcf(0x18d)]||0x0)}))['sort']((_0x446a12,_0xcd01ee)=>_0xcd01ee[_0x3b4dcf(0xd9)]-_0x446a12[_0x3b4dcf(0xd9)]);localStorage['setItem'](_0x3b4dcf(0xdc),JSON[_0x3b4dcf(0x1ba)](_0xd5ebc5)),localStorage[_0x3b4dcf(0x10e)]('mff_arrival_log',JSON['stringify'](arrivalLog)),localStorage[_0x3b4dcf(0x10e)](_0x3b4dcf(0x136),JSON['stringify'](departureLog)),localStorage[_0x3b4dcf(0x10e)](_0x3b4dcf(0x10a),new Date()[_0x3b4dcf(0x12f)](_0x3b4dcf(0x100),{'weekday':'long','year':_0x3b4dcf(0x154),'month':_0x3b4dcf(0x11a),'day':_0x3b4dcf(0x154)}));const _0x529200=parseInt(localStorage[_0x3b4dcf(0x109)]('mff_session_count')||'0')+0x1;localStorage[_0x3b4dcf(0x10e)](_0x3b4dcf(0x197),_0x529200);}sessionStorage[_0x3b4dcf(0x10e)](_0x3b4dcf(0x1ac),'1'),location[_0x3b4dcf(0x129)]();}else{if(_0x50a253===_0x3b4dcf(0x142))executeSwap(_0x5df61e[_0x3b4dcf(0xe5)],_0x5df61e[_0x3b4dcf(0x178)]),swapCandidate=null;else _0x50a253===_0x3b4dcf(0x160)&&resumeSession();}}},document[_0x27a5a6(0x176)](_0x27a5a6(0x1b7))[_0x27a5a6(0x169)]=()=>{const _0x468c8c=_0x27a5a6;document[_0x468c8c(0x176)](_0x468c8c(0x18c))['style'][_0x468c8c(0x140)]=_0x468c8c(0x168);if(_0x50a253==='swap'){if(_0x5df61e[_0x468c8c(0xe5)]){const _0x104429=document[_0x468c8c(0x176)](_0x468c8c(0x135)+_0x5df61e[_0x468c8c(0xe5)]['id']);if(_0x104429)_0x104429[_0x468c8c(0x1bf)][_0x468c8c(0x1bb)]('selected');}swapCandidate=null;}},document['getElementById'](_0x27a5a6(0x18c))['style'][_0x27a5a6(0x140)]=_0x27a5a6(0xe4);}function showSessionInfoModal(){const _0x24eb00=_0x3ebe06;toggleBackgroundScroll(!![]),document[_0x24eb00(0x176)](_0x24eb00(0xeb))[_0x24eb00(0x145)][_0x24eb00(0x140)]=_0x24eb00(0xe4),document[_0x24eb00(0x176)](_0x24eb00(0x17d))[_0x24eb00(0x139)]=currentIntervalCount;const _0x5d7b62=document['getElementById']('player-stats-list');let _0x14abc9=_0x24eb00(0x12a);sessionPlayers['sort']((_0x262aa0,_0x7ba1f8)=>_0x7ba1f8[_0x24eb00(0xd9)]-(_0x7ba1f8[_0x24eb00(0x18d)]||0x0)-(_0x262aa0[_0x24eb00(0xd9)]-(_0x262aa0['joinSits']||0x0)))[_0x24eb00(0x199)](_0x236f1d=>{const _0x37933b=_0x24eb00,_0x1f665b=_0x236f1d[_0x37933b(0xd9)]-(_0x236f1d[_0x37933b(0x18d)]||0x0);_0x14abc9+=_0x37933b(0xe6)+_0x236f1d[_0x37933b(0xec)]+_0x37933b(0x179)+_0x1f665b+_0x37933b(0x104);}),_0x14abc9+=_0x24eb00(0x19e),_0x5d7b62['innerHTML']=_0x14abc9;const _0xc0df4a=document[_0x24eb00(0x176)](_0x24eb00(0x105));let _0x5c4737='';[...intervalHistory][_0x24eb00(0x186)]()[_0x24eb00(0x199)](_0x11d3f9=>{const _0x26a00b=_0x24eb00;_0x5c4737+=_0x26a00b(0x11e)+_0x11d3f9[_0x26a00b(0x102)]+_0x26a00b(0xff)+_0x11d3f9[_0x26a00b(0x143)][_0x26a00b(0xde)](_0x2249a8=>_0x26a00b(0x118)+_0x2249a8[_0x26a00b(0x1c2)]+':\x20'+_0x2249a8[_0x26a00b(0x1aa)][_0x26a00b(0x146)](',\x20')+_0x26a00b(0x1ab))[_0x26a00b(0x146)]('')+_0x26a00b(0x1a3)+(_0x11d3f9[_0x26a00b(0x192)][_0x26a00b(0x146)](',\x20')||_0x26a00b(0x10f))+'</p></div>';}),_0xc0df4a['innerHTML']=_0x5c4737||_0x24eb00(0x157);}function renderSessionUI(_0xdda1c8){renderCourts(currentPlaying,_0xdda1c8),renderBench(currentSitting);}function renderCourts_fromGroups(){const _0x168d5f=_0x3ebe06,_0xe3e4ae=document[_0x168d5f(0x176)]('courts-container');_0xe3e4ae[_0x168d5f(0x16b)]='',courtGroups[_0x168d5f(0x199)]((_0x269bdb,_0x17a2b7)=>{const _0x552cbf=_0x168d5f,_0xf776fd=_0x17a2b7+0x1;_0xe3e4ae['innerHTML']+=_0x552cbf(0x185)+_0xf776fd+_0x552cbf(0x187)+_0x269bdb[_0x552cbf(0xde)](_0x4f5eca=>_0x552cbf(0x159)+_0x4f5eca['id']+'\x22\x20onclick=\x22startSwapSelect('+_0x4f5eca['id']+_0x552cbf(0x13e)+_0x4f5eca[_0x552cbf(0xec)]+'</div>')[_0x552cbf(0x146)]('')+_0x552cbf(0xe9);});}function renderCourts(_0x182c11,_0x553a1e){const _0x116faf=_0x3ebe06,_0x15683b=document[_0x116faf(0x176)](_0x116faf(0x127));_0x15683b[_0x116faf(0x16b)]='';for(let _0x1de177=0x1;_0x1de177<=numCourts;_0x1de177++){const _0x14aa18=_0x1de177<=_0x553a1e,_0x4ef512=_0x14aa18?_0x182c11[_0x116faf(0x15f)]((_0x1de177-0x1)*0x4,_0x1de177*0x4):null;_0x15683b['innerHTML']+=_0x116faf(0x185)+_0x1de177+'\x20'+(_0x14aa18?'':_0x116faf(0x14e))+_0x116faf(0x187)+(_0x14aa18?_0x4ef512[_0x116faf(0xde)](_0x409f2a=>_0x116faf(0x159)+_0x409f2a['id']+_0x116faf(0x173)+_0x409f2a['id']+_0x116faf(0x13e)+_0x409f2a[_0x116faf(0xec)]+_0x116faf(0x19e))['join'](''):_0x116faf(0x119))+'\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>';}}function renderBench(_0x597c70){const _0x23ce88=_0x3ebe06;document[_0x23ce88(0x176)]('bench-container')[_0x23ce88(0x16b)]=_0x597c70['length']?_0x597c70[_0x23ce88(0xde)](_0xf6bd13=>_0x23ce88(0x159)+_0xf6bd13['id']+'\x22\x20onclick=\x22startSwapSelect('+_0xf6bd13['id']+',\x20\x27sitting\x27)\x22>'+_0xf6bd13[_0x23ce88(0xec)]+_0x23ce88(0x155)+_0xf6bd13[_0x23ce88(0xd9)]+')</small></div>')[_0x23ce88(0x146)](''):_0x23ce88(0x150);}function renderNewArrivals(){const _0x265e30=_0x3ebe06,_0x21c51e=document['getElementById']('new-arrivals-container');_0x21c51e[_0x265e30(0x16b)]=newArrivals[_0x265e30(0x17c)]?newArrivals[_0x265e30(0xde)](_0x10f666=>_0x265e30(0x122)+_0x10f666[_0x265e30(0xec)]+_0x265e30(0x19e))[_0x265e30(0x146)](''):_0x265e30(0x19c);}function renderClubRosterManagement(){const _0x38a1b4=_0x3ebe06,_0x1ef8c7=document[_0x38a1b4(0x176)]('club-roster-management-list');_0x1ef8c7[_0x38a1b4(0x16b)]=[...clubRoster][_0x38a1b4(0x171)](sortPlayersAlphabetical)[_0x38a1b4(0xde)](_0x4b9246=>_0x38a1b4(0xdd)+_0x4b9246[_0x38a1b4(0xec)]+_0x38a1b4(0x18b))[_0x38a1b4(0x146)]('');}function renderAvailableRollCallPlayers(){const _0x587b23=_0x3ebe06,_0x43f764=document[_0x587b23(0x176)](_0x587b23(0x107)),_0x1a4867=new Set(sessionPlayers[_0x587b23(0xde)](_0x584f95=>_0x584f95['id'])),_0xdb6c2f=clubRoster[_0x587b23(0x10c)](_0xf06a72=>!_0x1a4867['has'](_0xf06a72['id']))[_0x587b23(0x171)](sortPlayersAlphabetical);_0x43f764[_0x587b23(0x16b)]=_0xdb6c2f[_0x587b23(0xde)](_0x2c5383=>_0x587b23(0x11f)+_0x2c5383['id']+')\x22>'+_0x2c5383[_0x587b23(0xec)]+'</div>')[_0x587b23(0x146)]('');}function addPlayerToSession(_0x4af4ef){const _0x3aa0e1=_0x3ebe06,_0x4b2f99=clubRoster['find'](_0x14915f=>_0x14915f['id']===_0x4af4ef);if(_0x4b2f99){const _0x2942c1={..._0x4b2f99,'sits':0x0,'checkInIndex':++checkInCounter};document['getElementById'](_0x3aa0e1(0x153))[_0x3aa0e1(0x1bf)][_0x3aa0e1(0x161)]('active')?(newArrivals[_0x3aa0e1(0x147)](_0x2942c1),renderNewArrivals(),saveSessionState(),arrivalLog[_0x3aa0e1(0x147)]({'beforeInterval':currentIntervalCount+0x1,'name':_0x2942c1[_0x3aa0e1(0xec)]})):(sessionPlayers[_0x3aa0e1(0x147)](_0x2942c1),renderSessionRoster(),renderAvailableRollCallPlayers());}}function removePlayerFromSession(_0x2c2605){const _0x1003cb=_0x3ebe06,_0x14e65c=sessionPlayers[_0x1003cb(0xe8)](_0x3c28be=>_0x3c28be['id']===_0x2c2605);if(_0x14e65c){const _0x30e7b2=sessionPlayers[_0x1003cb(0x17a)](_0x4a5b87=>_0x4a5b87['id']===_0x2c2605);if(_0x30e7b2)departureLog[_0x1003cb(0x147)]({'beforeInterval':currentIntervalCount+0x1,'name':_0x30e7b2[_0x1003cb(0xec)]});}sessionPlayers=sessionPlayers[_0x1003cb(0x10c)](_0x14e359=>_0x14e359['id']!==_0x2c2605),newArrivals=newArrivals['filter'](_0x5b19ad=>_0x5b19ad['id']!==_0x2c2605),currentPlaying=currentPlaying[_0x1003cb(0x10c)](_0x566bf0=>_0x566bf0['id']!==_0x2c2605),currentSitting=currentSitting['filter'](_0x8608e7=>_0x8608e7['id']!==_0x2c2605),courtGroups=courtGroups[_0x1003cb(0xde)](_0x4a19e5=>_0x4a19e5['filter'](_0x3a131a=>_0x3a131a['id']!==_0x2c2605));const _0xdd77f8=courtGroups[_0x1003cb(0x10c)](_0x3fd993=>_0x3fd993[_0x1003cb(0x17c)]>0x0)[_0x1003cb(0x17c)];renderCourts_fromGroups(),renderBench(currentSitting),renderSessionRoster(),renderAvailableRollCallPlayers(),renderNewArrivals(),saveSessionState();}function startSession(){const _0x18ebc2=_0x3ebe06;if(sessionPlayers[_0x18ebc2(0x17c)]<0x7){alert(_0x18ebc2(0x10d));return;}arrivalLog=[],departureLog=[],localStorage['removeItem']('mff_arrival_log'),localStorage['removeItem'](_0x18ebc2(0x136)),showSessionScreen(),generateAssignments();}function showAddPlayerModal(){const _0x4dd107=_0x3ebe06;toggleBackgroundScroll(!![]);const _0x5f1f44=new Set(sessionPlayers[_0x4dd107(0xde)](_0x223817=>_0x223817['id'])[_0x4dd107(0xf0)](newArrivals['map'](_0x1fa7ca=>_0x1fa7ca['id']))),_0x5a9eac=clubRoster[_0x4dd107(0x10c)](_0x404dba=>!_0x5f1f44['has'](_0x404dba['id']))[_0x4dd107(0x171)](sortPlayersAlphabetical);document[_0x4dd107(0x176)](_0x4dd107(0x180))[_0x4dd107(0x16b)]=_0x5a9eac[_0x4dd107(0xde)](_0x2e3fe9=>'<li\x20onclick=\x22addPlayerToSession('+_0x2e3fe9['id']+_0x4dd107(0x1b6)+_0x2e3fe9[_0x4dd107(0xec)]+_0x4dd107(0x1a0))[_0x4dd107(0x146)]('')||_0x4dd107(0x1be),document[_0x4dd107(0x176)](_0x4dd107(0xe1))[_0x4dd107(0x145)]['display']=_0x4dd107(0xe4);}function showRemovePlayerModal(){const _0xf42337=_0x3ebe06;toggleBackgroundScroll(!![]);const _0x20d9f7=sessionPlayers['concat'](newArrivals)[_0xf42337(0x171)](sortPlayersAlphabetical);document[_0xf42337(0x176)](_0xf42337(0x132))[_0xf42337(0x16b)]=_0x20d9f7[_0xf42337(0xde)](_0x114469=>'<li\x20onclick=\x22removePlayerFromSession('+_0x114469['id']+_0xf42337(0x113)+_0x114469[_0xf42337(0xec)]+'</li>')['join']('')||_0xf42337(0xe3),document[_0xf42337(0x176)]('removePlayerModal')['style']['display']=_0xf42337(0xe4);}document[_0x3ebe06(0x134)](_0x3ebe06(0x12d),()=>{const _0x5d854e=_0x3ebe06,_0x147e5f=localStorage[_0x5d854e(0x109)]('mff_last_session_history');_0x147e5f&&(lastSessionHistory=JSON['parse'](_0x147e5f));const _0x461a58=localStorage[_0x5d854e(0x109)](_0x5d854e(0x19a)),_0x50b961=localStorage[_0x5d854e(0x109)](_0x5d854e(0x136));_0x461a58&&(arrivalLog=JSON['parse'](_0x461a58));_0x50b961&&(departureLog=JSON[_0x5d854e(0x14c)](_0x50b961));const _0x1f7745=document['getElementById'](_0x5d854e(0x158));_0x1f7745[_0x5d854e(0x15a)]=[...clubRoster][_0x5d854e(0x171)](sortPlayersAlphabetical)[_0x5d854e(0xde)](_0x2d7b74=>_0x2d7b74['name'])[_0x5d854e(0x146)](',\x20'),renderSessionRoster(),renderLastSessionHistory();});function _0x275b(){const _0x4a5e02=['r1vfu1qGmq','cIaGicaGicaGicaGicaGica8l2rPDJ4kicaGicaGicaGicaGpc9KAxy+','C3rHCNrZv2L0Aa','pgrPDIbZDhLSzt0IzM9UDc1ZDhLSztPPDgfSAwm7ignVBg9YoNzHCIGTlxnLy29UzgfYEsK7ig1HCMDPBJO0ChGGmca0ChGGnxb4oYbIB3jKzxiTDg9WoJfWEcbKB3r0zwqGi2rKzdSGCgfKzgLUzY10B3a6nhb4oYi+','t2LxDw4','C2nYzwvUlxnLDhrPBMDZlxbYzxyTC2vZC2LVBG','u3rLDMuGuY4','C2v0DgLUz3mTBg9NlwrHDgu','yMXVy2S','ktSGzg9JDw1LBNqUz2v0rwXLBwvUDej5swqOj2fKzfbSyxLLCK1VzgfSjYKUC3r5BguUzgLZCgXHEt0NBM9UzsC7ihrVz2DSzujHy2TNCM91BMrty3jVBgWOzMfSC2uPoYi+','y29UzMLYBu5V','pc9ZCgfUpJXICJ4','Bg9JywXLq29TCgfYzq','C3rYAw5NAwz5','CMvTB3zL','AgLKzgvU','C2v0DgLUz3mTy2XLyxiTBg9Nlwj0BG','pgXPpKfSBcbWBgf5zxjZignOzwnRzwqGAw48l2XPpG','y2XHC3nmAxn0','yxv0BW','y29UzMLYBvLLCW','y291CNq','r1vfu1qGmG','m3Pwsev3zq','r1vfu1qGmW','pgrPDIbJBgfZCZ0IBg9NlwnHCMqIpGOGicaGicaGicaGicaGicaGphn0CM9UzYbZDhLSzt0IzM9UDc1ZAxPLoIaXCMvToYbJB2XVCJOGDMfYkc0TzgfYAYK7igjVCMrLCI1IB3r0B206idfWEcbKyxnOzwqGi2nJyZSGzgLZCgXHEtOGyMXVy2S7ihbHzgrPBMCTyM90Dg9ToIa1ChG7iJ5jBNrLCNzHBca','C2L0CW','y3vYCMvUDfnPDhrPBMC','AgfZ','BwzMx2XHC3rFC2L0x2nVDw50CW','pgrPDIbJBgfZCZ0ICgXHEwvYlxjVDYiGC3r5Bgu9iMjHy2TNCM91BMq6DMfYkc0Ty2fYzcK7igjVCMrLCJOXChGGC29SAwqGi2nJyZSGANvZDgLMEs1JB250zw50oNn0yxj0oYi+phnWyw4+','BwfW','CMvZDw1LlwnVBMzPCM0TyNrU','BNvTq291CNrZ','ywrKugXHEwvYtw9KywW','cIaGicaGicaGicaGicaGicaGicaGpc9WpGOGicaGicaGicaGicaGicaGicaGia','pgXPpK5VihbSyxLLCNmGDg8GCMvTB3zLpc9SAt4','zMXLEa','y2fUzde','pgrPDIbJBgfZCZ0ICgXHEwvYlxn0yxqTCM93iJ48C3bHBIbZDhLSzt0IzM9UDc13zwLNAhq6yM9SzdSIpG','Bg9JyxrPB24','C29Tzq','cIaGicaGicaGicaGicaGicaGicaGpc9KAxy+cIaGicaGicaGicaGicaGica8l2rPDJ4','phaGC3r5Bgu9iM1HCMDPBI1IB3r0B206ohb4oYi+phn0CM9UzZ5jBNrLCNzHBdO8l3n0CM9UzZ4G','C2vZC2LVBKLUzM9nB2rHBa','BMfTzq','Dg9vChbLCKnHC2u','zgf0zq','B3zLCMzSB3Dz','y29Uy2f0','zw5Ku2vZC2LVBG','u3rLDMuGvI4','lNnJCMvLBI5Hy3rPDMu','sw50zxj2ywW6ia','u3vKzxnO','BwzMx3jLC3vTzv9ZzxnZAw9U','y3vYCMvUDc1ZzxnZAw9UlwLUDgvYDMfS','u2L2yq','CxvLCNLtzwXLy3rVCKfSBa','phnWyw4GC3r5Bgu9iMnVBg9YoNzHCIGTlxDHCM5PBMCSicnJmduWmdaPoYi+phn0CM9UzZ5mzwz0oJWVC3rYB25NpIa','vgHHCM1H','vhP1','C2nYzwvUlxnLDhrPBMDZlwfIB3v0','AxrHBgLJ','oJWVC3rYB25NpG','zw4Tq0e','CMvZDw1Llxn1Bw1HCNK','Aw50zxj2ywW','C2vSzwn0zwq','pc9ZDhjVBMC+pc9ZCgfUpJWVzgL2pG','Aw50zxj2ywWTAgLZDg9YEs1SB2C','phnTywXSpKnSAwnRicDsB2XSienHBgWNihrVignOzwnRigLUihbSyxLLCNmUpc9ZBwfSBd4','CM9SBc1JywXSlwXPC3qTy29UDgfPBMvY','CMfUzg9T','z2v0sxrLBq','BwzMx2XHC3rFC2vZC2LVBL9KyxrL','mtfsq0Hwr2S','zMLSDgvY','uM9SBcbdywXSihjLCxvPCMvKiokaLca3kYbWBgf5zxjZig5LzwrLzc4','C2v0sxrLBq','tM9Uzq','DMfSDwu','CgXHEwvYt2jQCW','y2XVC2vZDa','ktSGzg9JDw1LBNqUz2v0rwXLBwvUDej5swqOj3jLBw92zvbSyxLLCK1VzgfSjYKUC3r5BguUzgLZCgXHEt0NBM9UzsC7ihrVz2DSzujHy2TNCM91BMrty3jVBgWOzMfSC2uPoYi+','u2vZC2LVBIbKyxrLoIa','zMLUzeLUzgv4','twfNz2LL','r1vfu1q','pha+q291CNqG','pgrPDIbJBgfZCZ0ICgXHEwvYlxnSB3qIpK9Wzw48l2rPDJ48zgL2ignSyxnZpsjWBgf5zxiTC2XVDci+t3bLBJWVzgL2pJXKAxyGy2XHC3m9iNbSyxLLCI1ZBg90iJ5pCgvUpc9KAxy+pgrPDIbJBgfZCZ0ICgXHEwvYlxnSB3qIpK9Wzw48l2rPDJ4','Bg9UzW','vMLUy2vUDa','C2v0DgLUz3mTC2L0lwnVDw50CW','uhjLBq','pgrPDIbJBgfZCZ0IBg9NlwnHCMqIpJXZDhjVBMC+sw50zxj2ywWG','pgrPDIbJBgfZCZ0ICgXHEwvYlxjVDYiGC3r5Bgu9iMn1CNnVCJPWB2LUDgvYoYbIywnRz3jVDw5KoNzHCIGTlxn1y2nLC3mPoYbMB250lxDLAwDODdPIB2XKoYbQDxn0Awz5lwnVBNrLBNq6y2vUDgvYoYiGB25JBgLJAZ0IywrKugXHEwvYvg9tzxnZAw9Uka','C2vZC2LVBLbSyxLLCNm','mtGYndy2nfbdswjsCG','pgrPDIbJBgfZCZ0ICgXHEwvYlxnSB3qIpG','pgvTpK5VigLUDgvYDMfSCYbWBgf5zwqGEwv0lJWVzw0+','ndK2mZm0wKjJswnU','CMvTB3zLsxrLBq','yM9KEq','y291CNrZlwnVBNrHAw5LCG','C2vZC2LVBI1YB3n0zxiTBgLZDa','CMvSB2fK','pgrPDIbJBgfZCZ0IBg9NlwnHCMqIpG','lMnHCMq','q29UDgLUDwu','re9nq29UDgvUDeXVywrLza','uM9Nzxi','Dg9mB2nHBgveyxrLu3rYAw5N','mteXotjozen6wxy','BwzMx2XHC3rFC2vZC2LVBL9OAxn0B3j5','CMvTB3zLlxbSyxLLCI1SAxn0','vgHHCNnPBMK','ywrKrxzLBNrmAxn0zw5LCG','CgXHEwvYlq','BwzMx2rLCgfYDhvYzv9SB2C','u3vQyxK','mtCXmdmYy0nOAxPg','Aw5UzxjuzxH0','y291CNrhCM91Chm','ugv0zxi','pgvTpK5VihnLC3nPB24Gzgf0ysb5zxqUpc9LBt4','ywrK','lcaNCgXHEwLUzYCPiJ4','Aw50zxj2ywXiAxn0B3j5','zgLZCgXHEq','phnWyw4GC3r5Bgu9iMnVBg9YoNzHCIGTlxn1y2nLC3mSicmYztDKmZiPoYi+phn0CM9UzZ5bCNjPDMvKoJWVC3rYB25NpIa','C3DHCa','y291CNrZ','ywn0AxzL','C3r5Bgu','AM9PBG','ChvZAa','oJWVC3rYB25NpIa','pc9ZCgfUpGOGicaGicaGicaGicaGicaGpgj1DhrVBIbZDhLSzt0IyMfJA2DYB3vUzdPUB25LoYbIB3jKzxi6BM9UztSGy29SB3i6DMfYkc0TzgfUz2vYktSGy3vYC29YoNbVAw50zxi7iIbVBMnSAwnRpsjYzw1VDMvqBgf5zxjgCM9Tu2vZC2LVBIG','CgXHEwLUzW','y2HLy2TjBKLUzgv4','CgfYC2u','yMvMB3jLsw50zxj2ywW','lsbftvbuwq','mZe2mZGZnKTerxvbBq','phnTywXSpK5Vig9UzsbZAxr0Aw5NlJWVC21HBgW+','yxnZAwDU','C2nYzwvUlxnLDhrPBMDZlwn1CNjLBNqTC2vZC2LVBG','C2nYzwvUlxnLC3nPB24','BNvTzxjPyW','idXZBwfSBd4Ou2L0CZOG','CM9SBc1JywXSlxjVC3rLCI1OzwfKzxi','pha+tM8GAgLZDg9YEsb5zxqUpc9WpG','y2X1yI1YB3n0zxiTzgLZCgXHEq','pgrPDIbJBgfZCZ0ICgXHEwvYlxnSB3qIigLKpsjWBgf5zxiT','Dgv4DenVBNrLBNq','zMXHDe1HCa','phaGC3r5Bgu9iM1HCMDPBJOGm3b4ida7ihbHzgrPBMCTBgvMDdOGnxb4oYi+phn0CM9UzZ5dB3vYDca','qwXLEa','ownqBNfTtG','C2XPy2u','CMvZDw1Lu2vZC2LVBG','y29UDgfPBNm','q2fUy2vS','v2LSzNjLza','BMv3qxjYAxzHBhm','y2HLy2TjBKnVDw50zxi','y3vYCMvUDc1ZzxnZAw9UlwXVzW','ugf1Ba','BM9Uzq','B25JBgLJAW','C2nYzwvUlxjVBgWTy2fSBa','Aw5Uzxjive1m','wwvZ','phaGC3r5Bgu9iM1HCMDPBI1IB3r0B206ohb4oYi+phn0CM9UzZ5dB3vYDhm6pc9ZDhjVBMC+ia','C2v0DgLUz3mTC2vZC2LVBI1SB2C','pgvTpK5VigfJDgL2zsbZzxnZAw9UlJWVzw0+','C2nYzwvUlxnLDhrPBMDZ','C29YDa','C2vZC2LVBI1YB3n0zxiTBgLZDc1Zzxr1Ca','iIbVBMnSAwnRpsjZDgfYDfn3yxbtzwXLy3qO','rw5KifnLC3nPB24/ifrOAxmGD2LSBcbYzxnLDcbHBgWGzgf0ys4','n09PzfPtqW','z2v0rwXLBwvUDej5swq','BM9YBwfS','y2fUzdi','pc9ZCgfUpJXZCgfUpLnPDhm6idXZDhjVBMC+','zMLUza','y291CNqTy291BNqTC2v0DgLUzW','BgvUz3rO','Aw50zxj2ywWTy291BNqTzgLZCgXHEq','zgvWyxj0DxjLtg9N','BMv4DeLUDgvYDMfS','ywrKlxbSyxLLCI1SAxn0','BxvZDfbSyxK','ifbSyxLLCNmP','oJWVC3rYB25NpGOGicaGicaGicaGicaGicaGpgrPDIbZDhLSzt0IzM9UDc1ZAxPLoIaWlJLYzw07ihbHzgrPBMCTDg9WoIa1ChG7iJ4kicaGicaGicaGicaGicaGicaGica','zMXVB3i','cIaGicaGicaGicaGicaGica8zgL2ignSyxnZpsjJB3vYDc1IB3GIpGOGicaGicaGicaGicaGicaGicaGidXKAxyGy2XHC3m9iMnVDxj0lwHLywrLCIi+q291CNqG','CMv2zxjZzq','pc9KAxy+cIaGicaGicaGicaGicaGicaGicaGpgrPDIbJBgfZCZ0Iy291CNqTCgXHEwvYCYi+cIaGicaGicaGicaGicaGicaGicaGicaGia','y3vYCMvUDfbSyxLPBMC','CxvLCNLtzwXLy3rVCG','phnTywXSpK5VihbSyxLLCNmGy2HLy2TLzcbPBIb5zxqUpc9ZBwfSBd4','pc9ZCgfUpJWVzgL2pG','y29UzMLYBu1VzgfS','AM9PBLnPDhm','zM9UDfn0EwXL','BwLU','q2HLy2TLzc1jBIbsB3n0zxi6icG','mZGWnJaYmfHyvgrgBG','C2L0DgLUzW','mtuZmdG4mKjvBxroCW','C2nYzwvUlxnLDhvW','phaGC3r5Bgu9iM1HCMDPBI1IB3r0B206ohb4oYi+phn0CM9UzZ5eyxrLoJWVC3rYB25NpIa','Cg93','BwzMx3nLC3nPB25Fy291BNq','y29UzMLYBu1LC3nHz2u','zM9YrwfJAa','BwzMx2fYCML2ywXFBg9N','nZy1tw1xs25b','phnTywXSpK5Vig5LDYbWBgf5zxjZihDHAxrPBMCUpc9ZBwfSBd4','C2v0DgLUz3mTChjLDI1ZzxnZAw9UlwrHDgu','pc9KAxy+','twL0y2G','pc9SAt4','pgvTpK5VihbYzxzPB3vZihnLC3nPB24GCMvJB3jKzwqUpc9LBt4','q29UzMLYBsbszxnODwzMBguGzM9Yig5LEhqGAw50zxj2ywW/','phaGC3r5Bgu9iMzVBNqTC3r5Bgu6AxrHBgLJoYi+u2f0ie91DdOG','C2nYzwvUlxnLDhrPBMDZlxjLC3vTzq','pc9ZCgfUpG','Aw5JBhvKzxm','uhjHzgvLCa','u2HLCNjP','y3vYCMvUDeLUDgvYDMfSq291BNq','CgXHEwvYCW','pc9WpG','C2vZC2LVBKvUzfjLBg9Hza'];_0x275b=function(){return _0x4a5e02;};return _0x275b();}
+    // --- DATA ---
+    let clubRoster = [
+        { id: 2, name: "Alex" }, { id: 17, name: "Ali" }, { id: 19, name: "Barry" }, { id: 25, name: "Brian" },
+        { id: 10, name: "Eva" }, { id: 14, name: "Maggie" }, { id: 1, name: "Mitch" }, { id: 26, name: "Peter" },
+        { id: 15, name: "Pradeep" }, { id: 12, name: "Prem" }, { id: 4, name: "Roger" }, { id: 11, name: "Sherri" },
+        { id: 6, name: "Siva" }, { id: 9, name: "Steve S." }, { id: 8, name: "Steve V." }, { id: 3, name: "Sudesh" },
+        { id: 27, name: "Sujay" }, { id: 5, name: "Tharma" }, { id: 7, name: "Tharsini" }, { id: 18, name: "Tzu" },
+        { id: 13, name: "Vincent" }, { id: 16, name: "Wilfred" }, { id: 28, name: "Paul" }, { id: 29, name: "OiWun" },
+        { id: 21, name: "GUEST 1" }, { id: 22, name: "GUEST 2" },
+        { id: 23, name: "GUEST 3" }, { id: 24, name: "GUEST 4" }
+    ];
+
+    let sessionPlayers = []; 
+    let newArrivals = [];    
+    let numCourts = 3;       
+    let totalIntervals = 6; // V2.94 default: 6
+    let intervalDuration = 15; 
+    let currentIntervalCount = 0;
+    let checkInCounter = 0; 
+
+    let lastScreen = 'screen-setup'; 
+    let currentPlaying = []; 
+    let currentSitting = [];
+    let courtGroups = [];  // display-only: [[court1players],[court2players],...] 
+    let swapCandidate = null; // Stores {id, location}
+    let intervalHistory = []; 
+    let lastSessionHistory = null;
+    let arrivalLog   = [];  // { beforeInterval, names[] } — display only, never read by algorithm
+    let departureLog = [];  // { beforeInterval, names[] } — display only, never read by algorithm
+
+    // --- HELPERS ---
+    function sortPlayersAlphabetical(a, b) {
+        const isGuestA = a.name.toUpperCase().startsWith("GUEST");
+        const isGuestB = b.name.toUpperCase().startsWith("GUEST");
+        if (isGuestA && !isGuestB) return 1; 
+        if (!isGuestA && isGuestB) return -1; 
+        return a.name.localeCompare(b.name); 
+    }
+
+    function toggleBackgroundScroll(lock) {
+        document.body.style.overflowY = lock ? 'hidden' : 'auto'; 
+    }
+
+    // --- NAVIGATION ---
+    function showRollCallScreen() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-roll-call').classList.add('active');
+        lastScreen = 'screen-roll-call'; 
+        renderSessionRoster();
+        renderAvailableRollCallPlayers();
+    }
+
+    function showSetupScreen() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-setup').classList.add('active');
+        lastScreen = 'screen-setup'; 
+        renderSessionRoster(); 
+        renderLastSessionHistory(); 
+    }
+
+    function showSessionScreen() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-session').classList.add('active');
+        lastScreen = 'screen-session';
+    }
+
+    
+    // ── V72 Resume Session: Auto-save after every interval ────────
+    function saveSessionState() {
+        const state = {
+            date: new Date().toLocaleDateString('en-CA', {weekday:'long', year:'numeric', month:'long', day:'numeric'}),
+            sessionPlayers:      sessionPlayers.map(p => Object.assign({}, p)),
+            currentPlaying:      currentPlaying.map(p => Object.assign({}, p)),
+            currentSitting:      currentSitting.map(p => Object.assign({}, p)),
+            newArrivals:         newArrivals.map(p => Object.assign({}, p)),
+            currentIntervalCount: currentIntervalCount,
+            intervalHistory:     JSON.parse(JSON.stringify(intervalHistory)),
+            numCourts:           numCourts,
+            totalIntervals:      totalIntervals,
+            checkInCounter:      checkInCounter,
+            arrivalLog:          arrivalLog,
+            departureLog:        departureLog,
+            courtGroups:         courtGroups.map(court => court.map(p => Object.assign({}, p)))
+        };
+        localStorage.setItem('mff_resume_session', JSON.stringify(state));
+    }
+    // ──────────────────────────────────────────────────────────────
+
+    function showSettingsScreen() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-settings').classList.add('active');
+    }
+
+    function backFromSettings() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        document.getElementById(lastScreen).classList.add('active');
+    }
+
+    function backToSettingsMenu() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-settings').classList.add('active');
+    }
+
+    function showSettingsCourts() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        document.getElementById('court-count-setting').value = numCourts;
+        document.getElementById('screen-settings-courts').classList.add('active');
+    }
+
+    function showSettingsIntervals() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        document.getElementById('interval-count-setting').value = totalIntervals;
+        document.getElementById('screen-settings-intervals').classList.add('active');
+    }
+    function saveIntervalSettings() {
+        totalIntervals = parseInt(document.getElementById('interval-count-setting').value) || 0;
+        backToSettingsMenu();
+    }
+    function saveCourtSettings() {
+        numCourts = parseInt(document.getElementById('court-count-setting').value) || 3;
+        backToSettingsMenu();
+    }
+
+    function showSettingsRoster() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        renderClubRosterManagement();
+        document.getElementById('screen-settings-roster').classList.add('active');
+    }
+
+    function showPreviousSessionInfo() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        const sitDiv  = document.getElementById('settings-sit-counts');
+        const dateEl  = document.getElementById('settings-prev-session-date');
+        const savedSits = localStorage.getItem('mff_last_sit_counts');
+        const savedDate = localStorage.getItem('mff_last_session_date');
+        if (savedSits && sitDiv) {
+            const sitsData = JSON.parse(savedSits);
+            sitDiv.innerHTML = sitsData.map(p =>
+                `<div class="player-stat-row"><span style="font-weight:bold;">${p.name}</span><span>Sits: <strong>${p.sits}</strong></span></div>`
+            ).join('');
+        }
+        if (dateEl) dateEl.textContent = savedDate ? 'Session date: ' + savedDate : '';
+        renderLastSessionHistory();
+        document.getElementById('screen-settings-prev-session').classList.add('active');
+    }
+
+    
+    function showCurrentSessionInfo() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        // Interval count
+        const intervalEl = document.getElementById('current-session-interval');
+        if (intervalEl) intervalEl.textContent = currentIntervalCount > 0
+            ? 'Interval: ' + currentIntervalCount
+            : 'No session in progress.';
+        // Sit counts (corrected display)
+        const sitDiv = document.getElementById('current-session-sit-counts');
+        if (sitDiv) {
+            if (sessionPlayers.length > 0) {
+                const sorted = [...sessionPlayers].sort((a,b) =>
+                    (b.sits-(b.joinSits||0)) - (a.sits-(a.joinSits||0)));
+                sitDiv.innerHTML = sorted.map(p => {
+                    const displaySits = p.sits - (p.joinSits || 0);
+                    return `<div class="player-stat-row"><span style="font-weight:bold;">${p.name}</span><span>Sits: <strong>${displaySits}</strong></span></div>`;
+                }).join('');
+            } else {
+                sitDiv.innerHTML = '<em>No active session.</em>';
+            }
+        }
+        // Session log
+        const logDiv = document.getElementById('current-session-log');
+        if (logDiv) {
+            if (intervalHistory.length > 0) {
+                let html = '';
+                [...intervalHistory].reverse().forEach((log) => {
+                    const evtLines = buildEventLines(log.interval);
+                    html += `<div class="log-card"><strong>Interval ${log.interval}:</strong>` +
+                        log.courts.map(c => `<p>Court ${c.court}: ${c.players.join(', ')}</p>`).join('') +
+                        `<p style="font-style:italic;">Sat Out: ${log.sitting.join(', ') || 'None'}</p>` +
+                        evtLines +
+                        `</div>`;
+                });
+                logDiv.innerHTML = html;
+            } else {
+                logDiv.innerHTML = '<em>No intervals played yet.</em>';
+            }
+        }
+        document.getElementById('screen-settings-current-session').classList.add('active');
+    }
+
+    function showSettingsResume() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        const saved      = localStorage.getItem('mff_resume_session');
+        const summaryDiv = document.getElementById('resume-summary');
+        const confirmBtn = document.getElementById('resume-confirm-btn');
+        if (saved) {
+            const st = JSON.parse(saved);
+            const waiting = st.newArrivals && st.newArrivals.length > 0
+                ? `<p style="margin-bottom:8px;"><strong>Waiting (New Arrivals):</strong> ${st.newArrivals.map(p => p.name).join(', ')}</p>`
+                : '';
+            summaryDiv.innerHTML =
+                `<p style="margin-bottom:8px;"><strong>Date:</strong> ${st.date}</p>` +
+                `<p style="margin-bottom:8px;"><strong>Players checked in:</strong> ${st.sessionPlayers.length}</p>` +
+                `<p style="margin-bottom:8px;"><strong>Interval:</strong> ${st.currentIntervalCount}</p>` +
+                `<p style="margin-bottom:8px;"><strong>Courts:</strong> ${st.numCourts}</p>` +
+                waiting +
+                `<p style="margin-top:12px; color:var(--secondary); font-size:0.85rem;">Tap Resume to continue from where you left off.</p>`;
+            confirmBtn.style.display = 'block';
+        } else {
+            summaryDiv.innerHTML = '<em>No saved session found.</em>';
+            confirmBtn.style.display = 'none';
+        }
+        document.getElementById('screen-settings-resume').classList.add('active');
+    }
+
+    function resumeSession() {
+        const saved = localStorage.getItem('mff_resume_session');
+        if (!saved) return;
+        const st = JSON.parse(saved);
+        // Restore all state — algorithm variables only, no algorithm logic changed
+        sessionPlayers       = st.sessionPlayers;
+        currentPlaying       = st.currentPlaying;
+        currentSitting       = st.currentSitting;
+        // Restore courtGroups directly from saved state — preserves court structure after removals
+        courtGroups = st.courtGroups ? st.courtGroups : (() => {
+            const groups = [];
+            const _rCourts = Math.min(Math.floor(currentPlaying.length / 4), numCourts);
+            for (let _c = 0; _c < _rCourts; _c++) {
+                groups.push(currentPlaying.slice(_c * 4, _c * 4 + 4));
+            }
+            return groups;
+        })();
+        newArrivals          = st.newArrivals || [];
+        currentIntervalCount = st.currentIntervalCount;
+        intervalHistory      = st.intervalHistory;
+        numCourts            = st.numCourts;
+        totalIntervals       = st.totalIntervals || 6;
+        checkInCounter       = st.checkInCounter;
+        arrivalLog           = st.arrivalLog   || [];
+        departureLog         = st.departureLog || [];
+        // Navigate to session screen and re-render
+        const activeCourts = Math.min(Math.floor(sessionPlayers.length / 4), numCourts);
+        showSessionScreen();
+        if (courtGroups && courtGroups.length > 0) {
+            renderCourts_fromGroups();
+            renderBench(currentSitting);
+        } else {
+            renderSessionUI(activeCourts);
+        }
+        renderNewArrivals();
+    }
+
+    // ── V74 Arrival/Departure log helper ──────────────────────────
+    function buildEventLines(afterInterval) {
+        // Shows events that happened BEFORE the next interval (afterInterval+1)
+        const nextIv = afterInterval + 1;
+        const arrived  = arrivalLog.filter(e => e.beforeInterval === nextIv).map(e => e.name);
+        const departed = departureLog.filter(e => e.beforeInterval === nextIv).map(e => e.name);
+        let html = '';
+        if (arrived.length || departed.length) {
+            html += '<div style="font-style:italic; color:var(--secondary); margin:4px 0 4px 5px; border-top:1px dotted #ddd; padding-top:4px;">';
+            if (arrived.length)  html += `<span style="color:var(--success, #2e7d32);"><strong>Arrived:</strong> ${arrived.join(', ')}</span><br>`;
+            if (departed.length) html += `<span style="color:var(--warning, #c05000);"><strong>Left:</strong> ${departed.join(', ')}</span>`;
+            html += '</div>';
+        }
+        return html;
+    }
+    // ──────────────────────────────────────────────────────────────
+
+    function showSettingsAbout() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-settings-about').classList.add('active');
+    }
+
+    // saveSettingsAndReturn() replaced by saveCourtSettings() in V74
+
+    // --- UI RENDERING ---
+    function renderSessionRoster() {
+        const listRollCall = document.getElementById('session-roster-list');
+        const listSetup = document.getElementById('session-roster-list-setup');
+        const rollCallHeader = document.getElementById('roll-call-roster-header');
+        
+        const displayPlayers = [...sessionPlayers].sort((a, b) => a.checkInIndex - b.checkInIndex); 
+        if (rollCallHeader) rollCallHeader.innerText = `Checked-In: ${sessionPlayers.length} Players`;
+
+        let rosterHTML = displayPlayers.map(p => `
+            <div class="player-row">
+                <span>${p.name}</span>
+                <button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="removePlayerFromSession(${p.id})">✕</button>
+            </div>
+        `).join('');
+
+        if (listRollCall) listRollCall.innerHTML = rosterHTML || "<small>No players checked in yet.</small>";
+        if (listSetup) {
+            const summaryHTML = displayPlayers.map(p => `<div class="player-slot">${p.name}</div>`).join('');
+            listSetup.innerHTML = (sessionPlayers.length > 0) ? summaryHTML : "<small>Click 'Roll Call' to check in players.</small>";
+            const header = listSetup.closest('.card').querySelector('h3');
+            if (header) header.innerText = `Checked-In Roster: (${sessionPlayers.length} Players)`;
+        }
+    }
+
+    function renderLastSessionHistory() {
+        const container = document.getElementById('settings-session-log');
+        const clearBtn = document.getElementById('settings-clear-log-btn');
+        
+        if (!lastSessionHistory || lastSessionHistory.length === 0) { return; }
+        if (clearBtn) clearBtn.style.display = 'block';
+        let historyHTML = '';
+        
+        [...lastSessionHistory].reverse().forEach((log) => {
+            const evtLines = buildEventLines(log.interval);
+            historyHTML += `<div class="log-card">
+                <strong style="font-size: 1rem; color: var(--dark); border-bottom: 1px dashed #ccc; display: block; padding-bottom: 5px;">Interval ${log.interval}:</strong>
+                <div style="font-size: 0.9rem; padding-top: 5px;">
+                    ${log.courts.map(court => `<p style="margin: 3px 0; padding-left: 5px;"><strong>Court ${court.court}:</strong> ${court.players.join(', ')}</p>`).join('')}
+                    <p style="margin: 3px 0; padding-left: 5px; font-style: italic; color: var(--secondary); border-top: 1px dotted #ddd; padding-top: 5px;">
+                        <strong>Sat Out:</strong> ${log.sitting && log.sitting.length > 0 ? log.sitting.join(', ') : 'None'}
+                    </p>
+                    ${evtLines}
+                </div>
+            </div>`;
+        });
+        if (container) container.innerHTML = historyHTML;
+    }
+
+    function clearSavedHistory() {
+        localStorage.removeItem('mff_last_session_history');
+        localStorage.removeItem('mff_last_sit_counts');
+        localStorage.removeItem('mff_last_session_date');
+        lastSessionHistory = null;
+        const logDiv  = document.getElementById('settings-session-log');
+        const sitDiv  = document.getElementById('settings-sit-counts');
+        const btn     = document.getElementById('settings-clear-log-btn');
+        const dateEl1 = document.getElementById('settings-sit-count-date');
+        const dateEl2 = document.getElementById('settings-log-date');
+        if (logDiv)  logDiv.innerHTML  = '<em>No previous session recorded.</em>';
+        if (sitDiv)  sitDiv.innerHTML  = '<em>No session data yet.</em>';
+        if (btn)     btn.style.display = 'none';
+        if (dateEl1) dateEl1.textContent = '';
+        if (dateEl2) dateEl2.textContent = '';
+    }
+
+    // --- BRAIN LOGIC ---
+    function calculatePairingScore(playerAId, playerBId) {
+        let count = 0;
+        const playerAName = sessionPlayers.find(p => p.id === playerAId)?.name;
+        const playerBName = sessionPlayers.find(p => p.id === playerBId)?.name;
+
+        intervalHistory.forEach(log => {
+            log.courts.forEach(court => {
+                if (court.players.includes(playerAName) && court.players.includes(playerBName)) {
+                    count++;
+                }
+            });
+        });
+        return count === 0 ? 0 : Math.pow(10, count);
+    }
+
+    function generateAssignments() {
+        currentIntervalCount++;
+        
+        if (newArrivals.length > 0) {
+            // *** V2.93 FIX: Use minSits instead of maxSits+1 for new arrivals.
+            // maxSits+1 permanently shielded new arrivals from sitting (sorted them
+            // to the top of the play pool), starving original players of court time.
+            // minSits puts new arrivals level with the least-sat players so they
+            // compete fairly from their very first interval. Display still shows 0
+            // since: displaySits = sits - joinSits = minSits - minSits = 0.
+            const minSits = sessionPlayers.length > 0 ? Math.min(...sessionPlayers.map(p => p.sits)) : 0;
+            newArrivals.forEach(p => { p.sits = minSits; p.joinSits = minSits; });
+            newArrivals.forEach(p => { p.joinInterval = currentIntervalCount; });
+            sessionPlayers.push(...newArrivals);
+            newArrivals = [];
+            renderNewArrivals();
+        }
+
+        const activeCourts = Math.min(Math.floor(sessionPlayers.length / 4), numCourts);
+        const playingSpots = activeCourts * 4;
+
+        const lastSittingNames = intervalHistory.length > 0 ? intervalHistory[intervalHistory.length-1].sitting : [];
+        sessionPlayers.forEach(p => p.mustPlay = lastSittingNames.includes(p.name));
+        // V2.94: Protect players who joined after the halfway point — they never sit.
+        if (totalIntervals > 0) {
+            sessionPlayers.forEach(p => {
+                if ((p.joinInterval || 1) > totalIntervals / 2) p.mustPlay = true;
+            });
+        }
+
+        for (let i = sessionPlayers.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [sessionPlayers[i], sessionPlayers[j]] = [sessionPlayers[j], sessionPlayers[i]];
+        }
+        sessionPlayers.sort((a, b) => {
+            if (a.mustPlay && !b.mustPlay) return -1;
+            if (!a.mustPlay && b.mustPlay) return 1;
+            return b.sits - a.sits;
+        });
+
+        let pool = sessionPlayers.slice(0, playingSpots);
+        let sitting = sessionPlayers.slice(playingSpots);
+        let assignments = [];
+
+        // 1. Initially divide players into courts sequentially
+        let tempCourts = [];
+        for (let c = 0; c < activeCourts; c++) {
+            tempCourts.push(pool.slice(c * 4, (c + 1) * 4));
+        }
+
+        // Helper function to score the entire room
+        function scoreAllCourts(courtsArray) {
+            let total = 0;
+            courtsArray.forEach(court => {
+                for (let i = 0; i < court.length; i++) {
+                    for (let j = i + 1; j < court.length; j++) {
+                        total += calculatePairingScore(court[i].id, court[j].id);
+                    }
+                }
+            });
+            return total;
+        }
+
+        let currentScore = scoreAllCourts(tempCourts);
+
+        // 2. Optimization Loop: Try swapping players 1000 times to find the lowest total score
+        for (let i = 0; i < 1000; i++) {
+            // Pick two random, different courts
+            let c1 = Math.floor(Math.random() * activeCourts);
+            let c2 = Math.floor(Math.random() * activeCourts);
+            if (c1 === c2) continue;
+
+            // Pick a random player from each court
+            let p1 = Math.floor(Math.random() * 4);
+            let p2 = Math.floor(Math.random() * 4);
+
+            // Swap them
+            let temp = tempCourts[c1][p1];
+            tempCourts[c1][p1] = tempCourts[c2][p2];
+            tempCourts[c2][p2] = temp;
+
+            let newScore = scoreAllCourts(tempCourts);
+
+            // If the swap made the total score worse, swap them back
+            if (newScore < currentScore) {
+                currentScore = newScore;
+            } else {
+                temp = tempCourts[c1][p1];
+                tempCourts[c1][p1] = tempCourts[c2][p2];
+                tempCourts[c2][p2] = temp;
+            }
+        }
+
+
+        // *** PROTECTED — 2-Court Deadlock Breaker ***
+        // Two-layer guard for 2-court sessions:
+        //   Layer 1: Reject any arrangement that is a fingerprint-exact duplicate
+        //            of ANY previous interval in intervalHistory.
+        //   Layer 2: Reject any arrangement where 3+ players repeat on the same
+        //            court as the immediately preceding interval (near-duplicate).
+        // If the proposed arrangement fails either check, try all 16 cross-court
+        // swaps and pick the best unseen + non-overlapping one. Falls back to
+        // least-recently-used if every swap still fails both layers.
+        if (activeCourts === 2) {
+
+            function makeFingerprint(courts) {
+                return courts.map(c => c.map(p => p.name).sort().join('|')).sort().join('||');
+            }
+
+            // Layer 1: fingerprints of ALL previous intervals
+            const seenFingerprints = new Set(
+                intervalHistory.map(entry =>
+                    entry.courts.map(c => c.players.slice().sort().join('|')).sort().join('||')
+                )
+            );
+
+            // Layer 2: courts of the immediately previous interval
+            const prevCourts = intervalHistory.length > 0
+                ? intervalHistory[intervalHistory.length - 1].courts.map(c => new Set(c.players))
+                : [];
+
+            function hasConsecutiveOverlap(courts) {
+                if (prevCourts.length === 0) return false;
+                for (const proposedCourt of courts) {
+                    const proposedSet = new Set(proposedCourt.map(p => p.name));
+                    for (const prevSet of prevCourts) {
+                        let shared = 0;
+                        for (const name of proposedSet) { if (prevSet.has(name)) shared++; }
+                        if (shared >= 3) return true;
+                    }
+                }
+                return false;
+            }
+
+            function isBadArrangement(courts) {
+                const fp = makeFingerprint(courts);
+                return seenFingerprints.has(fp) || hasConsecutiveOverlap(courts);
+            }
+
+            if (isBadArrangement(tempCourts)) {
+                let bestSwap = null;
+                let fallbackSwap = null;
+                let fallbackScore = Infinity;
+
+                for (let i = 0; i < tempCourts[0].length; i++) {
+                    for (let j = 0; j < tempCourts[1].length; j++) {
+                        // Try swap
+                        let tmp = tempCourts[0][i]; tempCourts[0][i] = tempCourts[1][j]; tempCourts[1][j] = tmp;
+                        const score = scoreAllCourts(tempCourts);
+
+                        if (!isBadArrangement(tempCourts)) {
+                            if (bestSwap === null || score < bestSwap.score) {
+                                bestSwap = { i, j, score };
+                            }
+                        } else {
+                            if (score < fallbackScore) {
+                                fallbackScore = score;
+                                fallbackSwap = { i, j };
+                            }
+                        }
+                        // Swap back
+                        tmp = tempCourts[0][i]; tempCourts[0][i] = tempCourts[1][j]; tempCourts[1][j] = tmp;
+                    }
+                }
+
+                const chosen = bestSwap || fallbackSwap;
+                if (chosen) {
+                    let tmp = tempCourts[0][chosen.i];
+                    tempCourts[0][chosen.i] = tempCourts[1][chosen.j];
+                    tempCourts[1][chosen.j] = tmp;
+                }
+            }
+        }
+        // *** END 2-Court Deadlock Breaker ***
+
+        // 3. Format the final optimized courts into assignments
+        for (let c = 0; c < activeCourts; c++) {
+            assignments.push({ 
+                court: c + 1, 
+                players: tempCourts[c].map(p => p.name), 
+                playerObjs: tempCourts[c] 
+            });
+        }
+
+        currentPlaying = assignments.flatMap(a => a.playerObjs);
+        currentSitting = sitting;
+        courtGroups = assignments.map(a => [...a.playerObjs]); // snapshot per-court for display
+        
+        const playingIds = new Set(currentPlaying.map(p => p.id));
+        sessionPlayers.forEach(p => {
+            if (!playingIds.has(p.id)) {
+                p.sits++;
+            }
+        });
+
+        updateIntervalHistory();
+        renderSessionUI(activeCourts);
+    }
+
+    function updateIntervalHistory() {
+        const activeCourts = Math.floor(currentPlaying.length / 4);
+        let courtData = [];
+        for (let i = 0; i < activeCourts; i++) {
+            courtData.push({
+                court: i + 1,
+                players: currentPlaying.slice(i * 4, (i + 1) * 4).map(p => p.name)
+            });
+        }
+
+        const historyEntry = {
+            interval: currentIntervalCount,
+            courts: courtData,
+            sitting: currentSitting.map(p => p.name)
+        };
+
+        if (intervalHistory.length < currentIntervalCount) {
+            intervalHistory.push(historyEntry);
+        } else {
+            intervalHistory[currentIntervalCount - 1] = historyEntry;
+        }
+    }
+
+    // --- SWAP LOGIC ---
+    function startSwapSelect(id, location) {
+        const slot = document.getElementById(`player-${id}`);
+
+        // If clicking the same player again, deselect
+        if (swapCandidate && swapCandidate.id === id) {
+            slot.classList.remove('selected');
+            swapCandidate = null;
+            return;
+        }
+
+        // First selection
+        if (!swapCandidate) {
+            swapCandidate = { id, location };
+            slot.classList.add('selected');
+        } else {
+            // Second selection: Open Confirmation
+            const cand2 = { id, location };
+            showConfirmation('swap', { cand1: swapCandidate, cand2: cand2 });
+        }
+    }
+
+    function executeSwap(cand1, cand2) {
+        let p1, p2, idx1, idx2;
+
+        // Find P1
+        if (cand1.location === 'playing') {
+            idx1 = currentPlaying.findIndex(p => p.id === cand1.id);
+            p1 = currentPlaying[idx1];
+        } else {
+            idx1 = currentSitting.findIndex(p => p.id === cand1.id);
+            p1 = currentSitting[idx1];
+        }
+
+        // Find P2
+        if (cand2.location === 'playing') {
+            idx2 = currentPlaying.findIndex(p => p.id === cand2.id);
+            p2 = currentPlaying[idx2];
+        } else {
+            idx2 = currentSitting.findIndex(p => p.id === cand2.id);
+            p2 = currentSitting[idx2];
+        }
+
+        // Perform Swap across arrays
+        if (cand1.location === 'playing' && cand2.location === 'playing') {
+            [currentPlaying[idx1], currentPlaying[idx2]] = [currentPlaying[idx2], currentPlaying[idx1]];
+        } else if (cand1.location === 'sitting' && cand2.location === 'sitting') {
+            [currentSitting[idx1], currentSitting[idx2]] = [currentSitting[idx2], currentSitting[idx1]];
+        } else if (cand1.location === 'playing' && cand2.location === 'sitting') {
+            currentPlaying[idx1] = p2;
+            currentSitting[idx2] = p1;
+            p1.sits++; p2.sits--; // Adjust sit counts
+        } else {
+            currentSitting[idx1] = p2;
+            currentPlaying[idx2] = p1;
+            p1.sits--; p2.sits++; // Adjust sit counts
+        }
+
+        // Sync courtGroups with the swap so display state stays accurate
+        if (cand1.location === 'playing' && cand2.location === 'playing') {
+            // Both on court: swap their slots in courtGroups
+            for (let c = 0; c < courtGroups.length; c++) {
+                const i1 = courtGroups[c].findIndex(p => p.id === cand1.id);
+                if (i1 >= 0) courtGroups[c][i1] = p2;
+                const i2 = courtGroups[c].findIndex(p => p.id === cand2.id);
+                if (i2 >= 0) courtGroups[c][i2] = p1;
+            }
+        } else if (cand1.location === 'playing') {
+            // cand1 left court → replace cand1 in courtGroups with cand2 (p2)
+            for (let c = 0; c < courtGroups.length; c++) {
+                const i = courtGroups[c].findIndex(p => p.id === cand1.id);
+                if (i >= 0) { courtGroups[c][i] = p2; break; }
+            }
+        } else if (cand2.location === 'playing') {
+            // cand2 left court → replace cand2 in courtGroups with cand1 (p1)
+            for (let c = 0; c < courtGroups.length; c++) {
+                const i = courtGroups[c].findIndex(p => p.id === cand2.id);
+                if (i >= 0) { courtGroups[c][i] = p1; break; }
+            }
+        }
+
+        updateIntervalHistory();
+        renderCourts_fromGroups();
+        renderBench(currentSitting);
+    }
+
+    // --- MODALS & ALERTS ---
+    function showConfirmation(action, payload = null) {
+        let msg = "";
+        if (action === 'nextInterval') msg = "Confirm Reshuffle for next interval?";
+        else if (action === 'endSession') msg = "End Session? This will reset all data.";
+        else if (action === 'swap') msg = "Confirm player swap?";
+        else if (action === 'resumeSession') msg = "This will restore your last session exactly as it was — courts, bench, and player assignments. The session log and sit counts will continue from where you left off.";
+
+        document.getElementById('confirmMessage').innerText = msg;
+
+        // Dynamically label buttons and style message based on action
+        const yesBtn = document.getElementById('confirmYes');
+        const noBtn  = document.getElementById('confirmNo');
+        const msgEl  = document.getElementById('confirmMessage');
+        if (action === 'resumeSession') {
+            yesBtn.innerText      = 'Continue';
+            noBtn.innerText       = 'Cancel';
+            msgEl.style.fontStyle = 'italic';
+        } else {
+            yesBtn.innerText      = 'Yes';
+            noBtn.innerText       = 'No';
+            msgEl.style.fontStyle = 'normal';
+        }
+
+        document.getElementById('confirmYes').onclick = () => {
+            document.getElementById('confirmModal').style.display = 'none';
+            if (action === 'nextInterval') {
+                generateAssignments();
+                saveSessionState();
+            } else if (action === 'endSession') {
+                if (intervalHistory.length > 0) {
+                    localStorage.setItem('mff_last_session_history', JSON.stringify(intervalHistory));
+                    const sitData = sessionPlayers.map(p => ({ name: p.name, sits: p.sits - (p.joinSits || 0) }))
+                                                   .sort((a,b) => b.sits - a.sits);
+                    localStorage.setItem('mff_last_sit_counts', JSON.stringify(sitData));
+                    localStorage.setItem('mff_arrival_log', JSON.stringify(arrivalLog));
+                    localStorage.setItem('mff_departure_log', JSON.stringify(departureLog));
+                    localStorage.setItem('mff_last_session_date', new Date().toLocaleDateString('en-CA', {weekday:'long', year:'numeric', month:'long', day:'numeric'}));
+                    const _sc = parseInt(localStorage.getItem('mff_session_count') || '0') + 1;
+                    localStorage.setItem('mff_session_count', _sc);
+                }
+                sessionStorage.setItem('sessionEndReload', '1');
+                location.reload();
+            } else if (action === 'swap') {
+                executeSwap(payload.cand1, payload.cand2);
+                swapCandidate = null;
+            }
+            else if (action === 'resumeSession') { resumeSession(); }
+        };
+
+        document.getElementById('confirmNo').onclick = () => {
+            document.getElementById('confirmModal').style.display = 'none';
+            if (action === 'swap') {
+                // Clear selection if cancelled
+                if (payload.cand1) {
+                    const slot = document.getElementById(`player-${payload.cand1.id}`);
+                    if (slot) slot.classList.remove('selected');
+                }
+                swapCandidate = null;
+            }
+        };
+
+        document.getElementById('confirmModal').style.display = 'flex';
+    }
+
+    function showSessionInfoModal() {
+        toggleBackgroundScroll(true);
+        document.getElementById('sessionInfoModal').style.display = 'flex';
+        document.getElementById('interval-count-display').innerText = currentIntervalCount;
+
+        const statsContainer = document.getElementById('player-stats-list');
+        let statsHTML = `<div class="log-card">`;
+        sessionPlayers.sort((a,b) => (b.sits-(b.joinSits||0)) - (a.sits-(a.joinSits||0))).forEach(p => {
+            const displaySits = p.sits - (p.joinSits || 0);
+            statsHTML += `<div class="player-stat-row"><span style="font-weight:bold;">${p.name}</span><span>Sits: <strong>${displaySits}</strong></span></div>`;
+        });
+        statsHTML += `</div>`;
+        statsContainer.innerHTML = statsHTML;
+
+        const historyContainer = document.getElementById('interval-history-log');
+        let historyHTML = '';
+        [...intervalHistory].reverse().forEach(log => {
+            historyHTML += `<div class="log-card"><strong>Interval ${log.interval}:</strong>${log.courts.map(c => `<p>Court ${c.court}: ${c.players.join(', ')}</p>`).join('')}<p style="font-style:italic;">Sat Out: ${log.sitting.join(', ') || 'None'}</p></div>`;
+        });
+        historyContainer.innerHTML = historyHTML || "<p>No history yet.</p>";
+    }
+
+    function renderSessionUI(active) {
+        renderCourts(currentPlaying, active);
+        renderBench(currentSitting);
+    }
+
+    function renderCourts_fromGroups() {
+        // Display-only: renders courts from courtGroups (preserves court structure after player removal)
+        const container = document.getElementById('courts-container');
+        container.innerHTML = "";
+        courtGroups.forEach((group, idx) => {
+            const courtNum = idx + 1;
+            container.innerHTML += `
+                <div class="court-box">
+                    <div class="court-header">Court ${courtNum}</div>
+                    <div class="court-players">
+                        ${group.map(player => `<div class="player-slot" id="player-${player.id}" onclick="startSwapSelect(${player.id}, 'playing')">${player.name}</div>`).join('')}
+                    </div>
+                </div>`;
+        });
+    }
+
+    function renderCourts(list, active) {
+        const container = document.getElementById('courts-container');
+        container.innerHTML = "";
+        for (let i = 1; i <= numCourts; i++) {
+            const isFilled = i <= active;
+            const p = isFilled ? list.slice((i-1)*4, i*4) : null;
+            container.innerHTML += `
+                <div class="court-box">
+                    <div class="court-header">Court ${i} ${isFilled ? '' : '- EMPTY'}</div>
+                    <div class="court-players">
+                        ${isFilled ? p.map(player => `<div class="player-slot" id="player-${player.id}" onclick="startSwapSelect(${player.id}, 'playing')">${player.name}</div>`).join('') : '<div class="player-slot">Open</div><div class="player-slot">Open</div><div class="player-slot">Open</div><div class="player-slot">Open</div>'}
+                    </div>
+                </div>`;
+        }
+    }
+
+    function renderBench(list) {
+        document.getElementById('bench-container').innerHTML = list.length ? list.map(p => `<div class="player-slot" id="player-${p.id}" onclick="startSwapSelect(${p.id}, 'sitting')">${p.name} <small>(Sits: ${p.sits})</small></div>`).join('') : "<small>No one sitting.</small>";
+    }
+
+    function renderNewArrivals() {
+        const container = document.getElementById('new-arrivals-container');
+        container.innerHTML = newArrivals.length ? newArrivals.map(p => `<div class="player-slot">${p.name}</div>`).join('') : "<small>No new players waiting.</small>";
+    }
+
+    function renderClubRosterManagement() {
+        const list = document.getElementById('club-roster-management-list');
+        list.innerHTML = [...clubRoster].sort(sortPlayersAlphabetical).map(p => `<div class="player-row" style="background:var(--card); border:1px solid #ccc; justify-content:start;"><span>${p.name}</span></div>`).join('');
+    }
+
+    function renderAvailableRollCallPlayers() {
+        const container = document.getElementById('roll-call-list-container');
+        const addedIds = new Set(sessionPlayers.map(p => p.id));
+        const available = clubRoster.filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
+        container.innerHTML = available.map(p => `<div class="player-row" style="cursor:pointer; background:var(--success); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${p.id})">${p.name}</div>`).join('');
+    }
+
+    function addPlayerToSession(id) {
+        const p = clubRoster.find(x => x.id === id);
+        if (p) { 
+            const newP = { ...p, sits: 0, checkInIndex: ++checkInCounter };
+            if (document.getElementById('screen-session').classList.contains('active')) {
+                newArrivals.push(newP); renderNewArrivals(); saveSessionState();
+                arrivalLog.push({ beforeInterval: currentIntervalCount + 1, name: newP.name });
+            } else {
+                sessionPlayers.push(newP); renderSessionRoster(); renderAvailableRollCallPlayers();
+            }
+        }
+    }
+
+    function removePlayerFromSession(id) {
+        const wasPlaying = sessionPlayers.some(p => p.id === id);
+        if (wasPlaying) {
+            const leaving = sessionPlayers.find(p => p.id === id);
+            if (leaving) departureLog.push({ beforeInterval: currentIntervalCount + 1, name: leaving.name });
+        }
+        sessionPlayers = sessionPlayers.filter(p => p.id !== id);
+        newArrivals    = newArrivals.filter(p => p.id !== id);
+        currentPlaying = currentPlaying.filter(p => p.id !== id);
+        currentSitting = currentSitting.filter(p => p.id !== id);
+        // Option A: remove from courtGroups in-place — no reorganizing, no court count change
+        courtGroups = courtGroups.map(court => court.filter(p => p.id !== id));
+        const activeCourts = courtGroups.filter(c => c.length > 0).length;
+        renderCourts_fromGroups();
+        renderBench(currentSitting);
+        renderSessionRoster(); renderAvailableRollCallPlayers(); renderNewArrivals();
+        // *** PROTECTED — Add/Remove/Resume: persist removal immediately so Resume reflects correct state ***
+        saveSessionState();
+    }
+
+    function startSession() {
+        sessionPlayers.forEach(p => { if (!p.joinInterval) p.joinInterval = 1; });
+        if (sessionPlayers.length < 7) { alert("Roll Call required — 7+ players needed."); return; }
+        arrivalLog   = [];
+        departureLog = [];
+        localStorage.removeItem('mff_arrival_log');
+        localStorage.removeItem('mff_departure_log');
+        showSessionScreen(); generateAssignments();
+    }
+
+    function showAddPlayerModal() {
+        toggleBackgroundScroll(true);
+        const addedIds = new Set(sessionPlayers.map(p => p.id).concat(newArrivals.map(p => p.id)));
+        const available = clubRoster.filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
+        document.getElementById('add-player-list').innerHTML = available.map(p => `<li onclick="addPlayerToSession(${p.id}); document.getElementById('addPlayerModal').style.display='none'; toggleBackgroundScroll(false);">${p.name}</li>`).join('') || "<li>All players checked in</li>";
+        document.getElementById('addPlayerModal').style.display = 'flex';
+    }
+
+    function showRemovePlayerModal() {
+        toggleBackgroundScroll(true);
+        const all = sessionPlayers.concat(newArrivals).sort(sortPlayersAlphabetical);
+        document.getElementById('remove-player-list').innerHTML = all.map(p => `<li onclick="removePlayerFromSession(${p.id}); document.getElementById('removePlayerModal').style.display='none'; toggleBackgroundScroll(false);">${p.name}</li>`).join('') || "<li>No players to remove</li>";
+        document.getElementById('removePlayerModal').style.display = 'flex';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const saved = localStorage.getItem('mff_last_session_history');
+        if (saved) { lastSessionHistory = JSON.parse(saved); }
+        const savedArr = localStorage.getItem('mff_arrival_log');
+        const savedDep = localStorage.getItem('mff_departure_log');
+        if (savedArr) { arrivalLog   = JSON.parse(savedArr); }
+        if (savedDep) { departureLog = JSON.parse(savedDep); }
+        
+        const display = document.getElementById('club-roster-display');
+        display.textContent = [...clubRoster].sort(sortPlayersAlphabetical).map(p => p.name).join(', ');
+        renderSessionRoster();
+        renderLastSessionHistory();
+    });
 </script>
 </head>
 <body>
@@ -474,6 +1340,9 @@ const _0x3ebe06=_0x3af2;(function(_0x3c3c6a,_0x731660){const _0x3c6a6c=_0x3af2,_
                     <div class="settings-menu-item" onclick="showSettingsCourts()">
                         <span>Number of Courts</span><span class="menu-arrow">&#8250;</span>
                     </div>
+                    <div class="settings-menu-item" onclick="showSettingsIntervals()">
+                        <span>Number of Intervals</span><span class="menu-arrow">&#8250;</span>
+                    </div>
                     <div class="settings-menu-item" onclick="showSettingsRoster()">
                         <span>Club Roster</span><span class="menu-arrow">&#8250;</span>
                     </div>
@@ -501,6 +1370,18 @@ const _0x3ebe06=_0x3af2;(function(_0x3c3c6a,_0x731660){const _0x3c6a6c=_0x3af2,_
                     <input type="number" id="court-count-setting" value="3" min="1" max="10" style="margin-bottom:12px;">
                 </div>
                 <button class="btn btn-success" onclick="saveCourtSettings()">Save</button>
+                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
+            </div>
+
+            <!-- Settings: Number of Intervals -->
+            <div id="screen-settings-intervals" class="screen">
+                <div class="card">
+                    <h2>Number of Intervals</h2>
+                    <label>Total Intervals Per Session:</label>
+                    <input type="number" id="interval-count-setting" value="6" min="0" max="20" style="margin-bottom:8px;">
+                    <p style="font-size:0.8rem;color:var(--secondary);margin:0 0 12px 0;">Set to 0 to disable. Players who join after the halfway point of the session will never be selected to sit out.</p>
+                </div>
+                <button class="btn btn-success" onclick="saveIntervalSettings()">Save</button>
                 <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
             </div>
 
@@ -556,7 +1437,7 @@ const _0x3ebe06=_0x3af2;(function(_0x3c3c6a,_0x731660){const _0x3c6a6c=_0x3af2,_
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 2.89</p>
+                    <p class="sub-screen-header">Version 2.94</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
@@ -576,7 +1457,47 @@ const _0x3ebe06=_0x3af2;(function(_0x3c3c6a,_0x731660){const _0x3c6a6c=_0x3af2,_
     <div id="sessionInfoModal" class="modal"><div class="modal-content" style="text-align:left; max-height:80vh; overflow-y:auto;"><h2>📊 Session Info</h2><p>Interval: <strong id="interval-count-display"></strong></p><hr><h3>Sit Counts</h3><div id="player-stats-list"></div><hr><h3>Log</h3><div id="interval-history-log"></div><button class="btn btn-primary" onclick="document.getElementById('sessionInfoModal').style.display='none'; toggleBackgroundScroll(false);">Close</button></div></div>
 
 <script>
-function _0x4904(_0x4b816f,_0x24ccf7){_0x4b816f=_0x4b816f-0xe7;const _0x5ce174=_0x5ce1();let _0x49043b=_0x5ce174[_0x4b816f];if(_0x4904['LOrfHn']===undefined){var _0x177b99=function(_0x4b9f44){const _0x44a5d4='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=';let _0x202e67='',_0x2806d0='';for(let _0x11ae34=0x0,_0x2107ce,_0x33cf85,_0x4a04c6=0x0;_0x33cf85=_0x4b9f44['charAt'](_0x4a04c6++);~_0x33cf85&&(_0x2107ce=_0x11ae34%0x4?_0x2107ce*0x40+_0x33cf85:_0x33cf85,_0x11ae34++%0x4)?_0x202e67+=String['fromCharCode'](0xff&_0x2107ce>>(-0x2*_0x11ae34&0x6)):0x0){_0x33cf85=_0x44a5d4['indexOf'](_0x33cf85);}for(let _0x5f2230=0x0,_0x4dbb00=_0x202e67['length'];_0x5f2230<_0x4dbb00;_0x5f2230++){_0x2806d0+='%'+('00'+_0x202e67['charCodeAt'](_0x5f2230)['toString'](0x10))['slice'](-0x2);}return decodeURIComponent(_0x2806d0);};_0x4904['tSjRQc']=_0x177b99,_0x4904['cgcpmf']={},_0x4904['LOrfHn']=!![];}const _0x265ea9=_0x5ce174[0x0],_0x4666cb=_0x4b816f+_0x265ea9,_0x4bd5b8=_0x4904['cgcpmf'][_0x4666cb];return!_0x4bd5b8?(_0x49043b=_0x4904['tSjRQc'](_0x49043b),_0x4904['cgcpmf'][_0x4666cb]=_0x49043b):_0x49043b=_0x4bd5b8,_0x49043b;}const _0x3c0107=_0x4904;(function(_0xee499d,_0x54cf56){const _0x229030=_0x4904,_0x1a22f0=_0xee499d();while(!![]){try{const _0xe26c20=-parseInt(_0x229030(0xf2))/0x1*(-parseInt(_0x229030(0x104))/0x2)+parseInt(_0x229030(0x103))/0x3*(parseInt(_0x229030(0xf1))/0x4)+parseInt(_0x229030(0xfc))/0x5+parseInt(_0x229030(0xf3))/0x6*(parseInt(_0x229030(0xfe))/0x7)+parseInt(_0x229030(0xfd))/0x8+parseInt(_0x229030(0xec))/0x9+parseInt(_0x229030(0x100))/0xa*(-parseInt(_0x229030(0xe7))/0xb);if(_0xe26c20===_0x54cf56)break;else _0x1a22f0['push'](_0x1a22f0['shift']());}catch(_0x597601){_0x1a22f0['push'](_0x1a22f0['shift']());}}}(_0x5ce1,0xf39a1),document[_0x3c0107(0xee)]('contextmenu',function(_0x202e67){const _0x43ec6a=_0x3c0107;_0x202e67[_0x43ec6a(0xf0)]();}),document['addEventListener']('keydown',function(_0x2806d0){const _0x10eeec=_0x3c0107;if(_0x2806d0['key']===_0x10eeec(0xe9))return _0x2806d0[_0x10eeec(0xf0)](),![];if(_0x2806d0[_0x10eeec(0xff)]&&_0x2806d0[_0x10eeec(0xfb)]&&['I','J','C'][_0x10eeec(0xef)](_0x2806d0[_0x10eeec(0xf4)][_0x10eeec(0x102)]()))return _0x2806d0[_0x10eeec(0xf0)](),![];if(_0x2806d0['ctrlKey']&&_0x2806d0[_0x10eeec(0xf4)]['toLowerCase']()==='u')return _0x2806d0['preventDefault'](),![];}),(function(){const _0x46f2f5=_0x3c0107,_0x11ae34=sessionStorage[_0x46f2f5(0xf7)]('sessionEndReload')==='1';if(_0x11ae34){sessionStorage[_0x46f2f5(0xed)]('sessionEndReload'),document[_0x46f2f5(0xf5)](_0x46f2f5(0xf6))[_0x46f2f5(0x101)]['display']=_0x46f2f5(0xeb);return;}const _0x2107ce=localStorage[_0x46f2f5(0xf7)]('mff_notice_confirmed')==='1',_0x33cf85=parseInt(localStorage[_0x46f2f5(0xf7)](_0x46f2f5(0xe8))||'0'),_0x4a04c6=_0x2107ce&&_0x33cf85>=0x5&&Math['random']()<0.2;!_0x2107ce||_0x4a04c6?document[_0x46f2f5(0xf5)](_0x46f2f5(0xf6))[_0x46f2f5(0x101)]['display']='flex':document[_0x46f2f5(0xf5)](_0x46f2f5(0xf6))[_0x46f2f5(0x101)]['display']=_0x46f2f5(0xeb);}()),document[_0x3c0107(0xf5)]('copyrightAckBtn')[_0x3c0107(0xee)](_0x3c0107(0xf9),function(){const _0x424d9c=_0x3c0107;localStorage[_0x424d9c(0xea)](_0x424d9c(0xfa),'1'),document[_0x424d9c(0xf5)](_0x424d9c(0xf6))[_0x424d9c(0x101)][_0x424d9c(0xf8)]=_0x424d9c(0xeb);}));function _0x5ce1(){const _0x48372f=['rJeY','C2v0sxrLBq','BM9Uzq','ntq2ota4nhztrLrXta','CMvTB3zLsxrLBq','ywrKrxzLBNrmAxn0zw5LCG','Aw5JBhvKzxm','ChjLDMvUDerLzMf1Bhq','otyWnta4wKPHz1bf','mti1nZm5offyq0LyBW','mZuYntG1mLDxBeTzDW','A2v5','z2v0rwXLBwvUDej5swq','y29WExjPz2H0t3zLCMXHEq','z2v0sxrLBq','zgLZCgXHEq','y2XPy2S','BwzMx25VDgLJzv9JB25MAxjTzwq','C2HPzNrlzxK','nZuZodm0mhnxs2jerG','ndyZodaWEuj4EfjX','mJfkwgn0quS','y3rYBeTLEq','nJCWnZbWCM52Cfq','C3r5Bgu','Dg9vChbLCKnHC2u','owvkEu1rqW','mM9rvKHoCq','oda2m3zQA2nwCq','BwzMx3nLC3nPB25Fy291BNq'];_0x5ce1=function(){return _0x48372f;};return _0x5ce1();}
+    /* ── V74 Right-Click & DevTools Protection ─────────────── */
+    // Disable right-click context menu
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+    // Disable F12, Ctrl+Shift+I/J/C, Ctrl+U
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F12') { e.preventDefault(); return false; }
+        if (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) {
+            e.preventDefault(); return false;
+        }
+        if (e.ctrlKey && e.key.toLowerCase() === 'u') {
+            e.preventDefault(); return false;
+        }
+    });
+
+    // Copyright notice logic:
+    // - Always show on first ever use (mff_notice_confirmed not set)
+    // - Suppress on session-end reload
+    // - Randomly show roughly every 5 sessions after first confirmation
+    (function() {
+        const isSessionReload = sessionStorage.getItem('sessionEndReload') === '1';
+        if (isSessionReload) {
+            sessionStorage.removeItem('sessionEndReload');
+            document.getElementById('copyrightOverlay').style.display = 'none';
+            return;
+        }
+        const confirmed   = localStorage.getItem('mff_notice_confirmed') === '1';
+        const sessionCount = parseInt(localStorage.getItem('mff_session_count') || '0');
+        // Show if: never confirmed, OR randomly ~1-in-5 after 5+ sessions
+        const showRandom  = confirmed && sessionCount >= 5 && Math.random() < 0.2;
+        if (!confirmed || showRandom) {
+            document.getElementById('copyrightOverlay').style.display = 'flex';
+        } else {
+            document.getElementById('copyrightOverlay').style.display = 'none';
+        }
+    })();
+    document.getElementById('copyrightAckBtn').addEventListener('click', function() {
+        localStorage.setItem('mff_notice_confirmed', '1');
+        document.getElementById('copyrightOverlay').style.display = 'none';
+    });
+    /* ─────────────────────────────────────────────────────────── */
 </script>
 
 </body>
