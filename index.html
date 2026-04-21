@@ -369,16 +369,7 @@
 </style>
     
 <script>
-    /*
-     * CourtFlow Rotation Manager
-     * Developer/Owner: ML | Copyright 2026 ML. All Rights Reserved.
-     * This software is proprietary and confidential.
-     * Unauthorized copying, distribution, modification, or reverse engineering
-     * of this file, in whole or in part, is strictly prohibited without the
-     * express written permission of ML.
-     */
-
-    
+    // --- DATA ---
     let clubRoster = [
         { id: 2, name: "Alex" }, { id: 17, name: "Ali" }, { id: 19, name: "Barry" }, { id: 25, name: "Brian" },
         { id: 10, name: "Eva" }, { id: 14, name: "Maggie" }, { id: 1, name: "Mitch" }, { id: 26, name: "Peter" },
@@ -393,7 +384,7 @@
     let sessionPlayers = []; 
     let newArrivals = [];    
     let numCourts = 3;       
-    let totalIntervals = 6; 
+    let totalIntervals = 6; // V2.94 default: 6
     let intervalDuration = 15; 
     let currentIntervalCount = 0;
     let checkInCounter = 0; 
@@ -401,14 +392,14 @@
     let lastScreen = 'screen-setup'; 
     let currentPlaying = []; 
     let currentSitting = [];
-    let courtGroups = [];  
-    let swapCandidate = null; 
+    let courtGroups = [];  // display-only: [[court1players],[court2players],...] 
+    let swapCandidate = null; // Stores {id, location}
     let intervalHistory = []; 
     let lastSessionHistory = null;
-    let arrivalLog   = [];  
-    let departureLog = [];  
+    let arrivalLog   = [];  // { beforeInterval, names[] } — display only, never read by algorithm
+    let departureLog = [];  // { beforeInterval, names[] } — display only, never read by algorithm
 
-    
+    // --- HELPERS ---
     function sortPlayersAlphabetical(a, b) {
         const isGuestA = a.name.toUpperCase().startsWith("GUEST");
         const isGuestB = b.name.toUpperCase().startsWith("GUEST");
@@ -421,7 +412,7 @@
         document.body.style.overflowY = lock ? 'hidden' : 'auto'; 
     }
 
-    
+    // --- NAVIGATION ---
     function showRollCallScreen() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         document.getElementById('screen-roll-call').classList.add('active');
@@ -445,7 +436,7 @@
     }
 
     
-    
+    // ── V72 Resume Session: Auto-save after every interval ────────
     function saveSessionState() {
         const state = {
             date: new Date().toLocaleDateString('en-CA', {weekday:'long', year:'numeric', month:'long', day:'numeric'}),
@@ -464,7 +455,7 @@
         };
         localStorage.setItem('mff_resume_session', JSON.stringify(state));
     }
-    
+    // ──────────────────────────────────────────────────────────────
 
     function showSettingsScreen() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
@@ -527,12 +518,12 @@
     
     function showCurrentSessionInfo() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
-        
+        // Interval count
         const intervalEl = document.getElementById('current-session-interval');
         if (intervalEl) intervalEl.textContent = currentIntervalCount > 0
             ? 'Interval: ' + currentIntervalCount
             : 'No session in progress.';
-        
+        // Sit counts (corrected display)
         const sitDiv = document.getElementById('current-session-sit-counts');
         if (sitDiv) {
             if (sessionPlayers.length > 0) {
@@ -546,7 +537,7 @@
                 sitDiv.innerHTML = '<em>No active session.</em>';
             }
         }
-        
+        // Session log
         const logDiv = document.getElementById('current-session-log');
         if (logDiv) {
             if (intervalHistory.length > 0) {
@@ -596,11 +587,11 @@
         const saved = localStorage.getItem('mff_resume_session');
         if (!saved) return;
         const st = JSON.parse(saved);
-        
+        // Restore all state — algorithm variables only, no algorithm logic changed
         sessionPlayers       = st.sessionPlayers;
         currentPlaying       = st.currentPlaying;
         currentSitting       = st.currentSitting;
-        
+        // Restore courtGroups directly from saved state — preserves court structure after removals
         courtGroups = st.courtGroups ? st.courtGroups : (() => {
             const groups = [];
             const _rCourts = Math.min(Math.floor(currentPlaying.length / 4), numCourts);
@@ -617,7 +608,7 @@
         checkInCounter       = st.checkInCounter;
         arrivalLog           = st.arrivalLog   || [];
         departureLog         = st.departureLog || [];
-        
+        // Navigate to session screen and re-render
         const activeCourts = Math.min(Math.floor(sessionPlayers.length / 4), numCourts);
         showSessionScreen();
         if (courtGroups && courtGroups.length > 0) {
@@ -629,9 +620,9 @@
         renderNewArrivals();
     }
 
-    
+    // ── V74 Arrival/Departure log helper ──────────────────────────
     function buildEventLines(afterInterval) {
-        
+        // Shows events that happened BEFORE the next interval (afterInterval+1)
         const nextIv = afterInterval + 1;
         const arrived  = arrivalLog.filter(e => e.beforeInterval === nextIv).map(e => e.name);
         const departed = departureLog.filter(e => e.beforeInterval === nextIv).map(e => e.name);
@@ -644,16 +635,16 @@
         }
         return html;
     }
-    
+    // ──────────────────────────────────────────────────────────────
 
     function showSettingsAbout() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         document.getElementById('screen-settings-about').classList.add('active');
     }
 
-    
+    // saveSettingsAndReturn() replaced by saveCourtSettings() in V74
 
-    
+    // --- UI RENDERING ---
     function renderSessionRoster() {
         const listRollCall = document.getElementById('session-roster-list');
         const listSetup = document.getElementById('session-roster-list-setup');
@@ -719,7 +710,7 @@
         if (dateEl2) dateEl2.textContent = '';
     }
 
-    
+    // --- BRAIN LOGIC ---
     function calculatePairingScore(playerAId, playerBId) {
         let count = 0;
         const playerAName = sessionPlayers.find(p => p.id === playerAId)?.name;
@@ -735,9 +726,9 @@
         return count === 0 ? 0 : Math.pow(10, count);
     }
 
-    
-    
-    
+    // V2.97: Court Assigner — assigns finalized groups to courts using deficit scoring.
+    // Exhaustive permutation check for <= 8 courts (max 40,320 perms — trivially fast).
+    // Greedy fallback for > 8 courts (extremely unlikely in real use).
     function assignCourts(groups, activeCourts) {
         function getPermutations(arr) {
             if (arr.length <= 1) return [[...arr]];
@@ -749,12 +740,12 @@
             return result;
         }
 
-        
-        
-        
-        
-        
-        
+        // Score a permutation using a 3-layer composite score (V2.98):
+        // Layer 1 (primary × 100)  — sum of all court deficits: dominates every decision
+        // Layer 2 (+ maxDeficit)   — single most under-served player: breaks group-level ties
+        // Layer 3 (+ noise 0.001)  — tiny random noise: breaks perfect symmetric early-interval ties
+        // Minimum real score diff = 0.25 → scaled to 25. Max secondary = 3. Max noise = 0.001.
+        // Hierarchy is airtight: primary always beats secondary, secondary always beats noise.
         function scorePerm(perm) {
             let primary = 0;
             let maxDeficit = -Infinity;
@@ -776,7 +767,7 @@
         const courtNums = Array.from({ length: activeCourts }, (_, i) => i + 1);
 
         if (activeCourts <= 8) {
-            
+            // Exhaustive: evaluate every permutation
             const perms = getPermutations(courtNums);
             let bestScore = -Infinity, bestPerm = perms[0];
             for (const perm of perms) {
@@ -785,7 +776,7 @@
             }
             return bestPerm;
         } else {
-            
+            // Greedy fallback: assign each group to its best remaining available court
             const assigned = new Array(activeCourts);
             const usedCourts = new Set();
             for (let g = 0; g < groups.length; g++) {
@@ -807,12 +798,12 @@
         currentIntervalCount++;
         
         if (newArrivals.length > 0) {
-            
-            
-            
-            
-            
-            
+            // *** V2.93 FIX: Use minSits instead of maxSits+1 for new arrivals.
+            // maxSits+1 permanently shielded new arrivals from sitting (sorted them
+            // to the top of the play pool), starving original players of court time.
+            // minSits puts new arrivals level with the least-sat players so they
+            // compete fairly from their very first interval. Display still shows 0
+            // since: displaySits = sits - joinSits = minSits - minSits = 0.
             const minSits = sessionPlayers.length > 0 ? Math.min(...sessionPlayers.map(p => p.sits)) : 0;
             newArrivals.forEach(p => { p.sits = minSits; p.joinSits = minSits; });
             newArrivals.forEach(p => { p.joinInterval = currentIntervalCount; });
@@ -826,7 +817,7 @@
 
         const lastSittingNames = intervalHistory.length > 0 ? intervalHistory[intervalHistory.length-1].sitting : [];
         sessionPlayers.forEach(p => p.mustPlay = lastSittingNames.includes(p.name));
-        
+        // V2.94: Protect players who joined after the halfway point — they never sit.
         if (totalIntervals > 0) {
             sessionPlayers.forEach(p => {
                 if ((p.joinInterval || 1) > totalIntervals / 2) p.mustPlay = true;
@@ -847,13 +838,13 @@
         let sitting = sessionPlayers.slice(playingSpots);
         let assignments = [];
 
-        
+        // 1. Initially divide players into courts sequentially
         let tempCourts = [];
         for (let c = 0; c < activeCourts; c++) {
             tempCourts.push(pool.slice(c * 4, (c + 1) * 4));
         }
 
-        
+        // Helper function to score the entire room — pure pairing quality only (V2.97)
         function scoreAllCourts(courtsArray) {
             let total = 0;
             courtsArray.forEach(court => {
@@ -868,25 +859,25 @@
 
         let currentScore = scoreAllCourts(tempCourts);
 
-        
+        // 2. Optimization Loop: Try swapping players 1000 times to find the lowest total score
         for (let i = 0; i < 1000; i++) {
-            
+            // Pick two random, different courts
             let c1 = Math.floor(Math.random() * activeCourts);
             let c2 = Math.floor(Math.random() * activeCourts);
             if (c1 === c2) continue;
 
-            
+            // Pick a random player from each court
             let p1 = Math.floor(Math.random() * 4);
             let p2 = Math.floor(Math.random() * 4);
 
-            
+            // Swap them
             let temp = tempCourts[c1][p1];
             tempCourts[c1][p1] = tempCourts[c2][p2];
             tempCourts[c2][p2] = temp;
 
             let newScore = scoreAllCourts(tempCourts);
 
-            
+            // If the swap made the total score worse, swap them back
             if (newScore < currentScore) {
                 currentScore = newScore;
             } else {
@@ -896,29 +887,30 @@
             }
         }
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
+        // *** PROTECTED — 2-Court Deadlock Breaker ***
+        // Two-layer guard for 2-court sessions:
+        //   Layer 1: Reject any arrangement that is a fingerprint-exact duplicate
+        //            of ANY previous interval in intervalHistory.
+        //   Layer 2: Reject any arrangement where 3+ players repeat on the same
+        //            court as the immediately preceding interval (near-duplicate).
+        // If the proposed arrangement fails either check, try all 16 cross-court
+        // swaps and pick the best unseen + non-overlapping one. Falls back to
+        // least-recently-used if every swap still fails both layers.
         if (activeCourts === 2) {
 
             function makeFingerprint(courts) {
                 return courts.map(c => c.map(p => p.name).sort().join('|')).sort().join('||');
             }
 
-            
+            // Layer 1: fingerprints of ALL previous intervals
             const seenFingerprints = new Set(
                 intervalHistory.map(entry =>
                     entry.courts.map(c => c.players.slice().sort().join('|')).sort().join('||')
                 )
             );
 
-            
+            // Layer 2: courts of the immediately previous interval
             const prevCourts = intervalHistory.length > 0
                 ? intervalHistory[intervalHistory.length - 1].courts.map(c => new Set(c.players))
                 : [];
@@ -948,7 +940,7 @@
 
                 for (let i = 0; i < tempCourts[0].length; i++) {
                     for (let j = 0; j < tempCourts[1].length; j++) {
-                        
+                        // Try swap
                         let tmp = tempCourts[0][i]; tempCourts[0][i] = tempCourts[1][j]; tempCourts[1][j] = tmp;
                         const score = scoreAllCourts(tempCourts);
 
@@ -962,7 +954,7 @@
                                 fallbackSwap = { i, j };
                             }
                         }
-                        
+                        // Swap back
                         tmp = tempCourts[0][i]; tempCourts[0][i] = tempCourts[1][j]; tempCourts[1][j] = tmp;
                     }
                 }
@@ -975,16 +967,16 @@
                 }
             }
         }
-        
+        // *** END 2-Court Deadlock Breaker ***
 
-        
-        
-        
-        
-        
-        
-        
-        
+        // *** V2.99c RESCUE SWAP ***
+        // Fires only when 0 players sit (8/12/16-player symmetry risk).
+        // Scans ALL cross-group swap candidates and picks the cheapest valid one
+        // that ensures the needy player's new group has a net deficit for the needed court.
+        // Threshold scales with deficit severity:
+        //   Minor deficit (0.5–0.99): strict +10 threshold (preserve pairing quality)
+        //   Severe deficit (>=1.0):   unconditional — optimizer has failed these players
+        //   (With 3 courts, deficit reaches 1.0 at I4 if a player has never visited a court)
         if (sitting.length === 0 && activeCourts >= 2) {
             let needyPlayer = null, neededCourt = -1, bestDeficit = 0, needyGroupIdx = -1;
 
@@ -1016,11 +1008,11 @@
                     for (let j = 0; j < tempCourts[g].length; j++) {
                         const candidate = tempCourts[g][j];
 
-                        
+                        // Simulate swap: needy player moves to group g, candidate moves to needyGroupIdx
                         tempCourts[needyGroupIdx][idx1] = candidate;
                         tempCourts[g][j] = needyPlayer;
 
-                        
+                        // Check: does needy player's new group (g) have NET deficit for neededCourt?
                         let netNeeded = 0;
                         for (const p of tempCourts[g]) {
                             if (!p.courtCounts) continue;
@@ -1029,7 +1021,7 @@
                             netNeeded += (pl / activeCourts) - (p.courtCounts[neededCourt] || 0);
                         }
 
-                        
+                        // Check: does the original group (needyGroupIdx) prefer courts OTHER than neededCourt?
                         let netOther = 0;
                         for (const p of tempCourts[needyGroupIdx]) {
                             if (!p.courtCounts) continue;
@@ -1049,13 +1041,13 @@
                             bestSwap = { g, j };
                         }
 
-                        
+                        // Revert simulation
                         tempCourts[needyGroupIdx][idx1] = needyPlayer;
                         tempCourts[g][j] = candidate;
                     }
                 }
 
-                
+                // Accept: unconditional if severe deficit (>=1.0), strict +10 if minor
                 const threshold = bestDeficit >= 1.0 ? Infinity : 10;
                 if (bestSwap && bestSwapCost <= threshold) {
                     const candidate = tempCourts[bestSwap.g][bestSwap.j];
@@ -1064,9 +1056,10 @@
                 }
             }
         }
-        
+        // *** END RESCUE SWAP ***
 
-        
+
+        // V2.97: Assign finalized groups to courts using court deficit scoring
         const courtAssignment = assignCourts(tempCourts, activeCourts);
         const reorderedCourts = new Array(activeCourts);
         for (let g = 0; g < activeCourts; g++) {
@@ -1074,7 +1067,7 @@
         }
         for (let c = 0; c < activeCourts; c++) { tempCourts[c] = reorderedCourts[c]; }
 
-        
+        // V2.97: Update each player's courtCounts for future deficit calculations
         for (let c = 0; c < activeCourts; c++) {
             tempCourts[c].forEach(p => {
                 if (!p.courtCounts) p.courtCounts = {};
@@ -1082,7 +1075,7 @@
             });
         }
 
-        
+        // 3. Format the final optimized courts into assignments
         for (let c = 0; c < activeCourts; c++) {
             assignments.push({ 
                 court: c + 1, 
@@ -1093,7 +1086,7 @@
 
         currentPlaying = assignments.flatMap(a => a.playerObjs);
         currentSitting = sitting;
-        courtGroups = assignments.map(a => [...a.playerObjs]); 
+        courtGroups = assignments.map(a => [...a.playerObjs]); // snapshot per-court for display
         
         const playingIds = new Set(currentPlaying.map(p => p.id));
         sessionPlayers.forEach(p => {
@@ -1129,32 +1122,80 @@
         }
     }
 
-    
-    function startSwapSelect(id, location) {
-        const slot = document.getElementById(`player-${id}`);
+    // --- SWAP LOGIC ---
+    function startSwapSelect(id, location, courtIdx = null, slotIdx = null) {
+        // All tappable slots use universal "slot-" prefix — works for players, bench, and Open slots
+        const slot = document.getElementById('slot-' + id);
 
-        
+        // If clicking the same slot again, deselect and clear
         if (swapCandidate && swapCandidate.id === id) {
-            slot.classList.remove('selected');
+            if (slot) slot.classList.remove('selected');
             swapCandidate = null;
             return;
         }
 
-        
+        // First selection — highlight the tapped slot
         if (!swapCandidate) {
-            swapCandidate = { id, location };
-            slot.classList.add('selected');
+            swapCandidate = { id, location, courtIdx, slotIdx };
+            if (slot) slot.classList.add('selected');
+            return;
+        }
+
+        // Second selection — validate the pairing before confirming
+        const cand1 = swapCandidate;
+        const cand2 = { id, location, courtIdx, slotIdx };
+
+        // Rule: Open slot can only pair with a sitting player (not another open or a playing player)
+        const openToSitting  = (cand1.location === 'open' && cand2.location === 'sitting');
+        const sittingToOpen  = (cand1.location === 'sitting' && cand2.location === 'open');
+        const playingToPlay  = (cand1.location === 'playing' && cand2.location === 'playing');
+        const playToSit      = (cand1.location === 'playing' && cand2.location === 'sitting') ||
+                               (cand1.location === 'sitting' && cand2.location === 'playing');
+
+        if (openToSitting || sittingToOpen || playingToPlay || playToSit) {
+            // Valid pairing — highlight second slot too, then show confirmation
+            if (slot) slot.classList.add('selected');
+            showConfirmation('swap', { cand1, cand2 });
         } else {
-            
-            const cand2 = { id, location };
-            showConfirmation('swap', { cand1: swapCandidate, cand2: cand2 });
+            // Invalid pairing (e.g. open+open, open+playing) — clear first selection silently
+            const prevSlot = document.getElementById('slot-' + cand1.id);
+            if (prevSlot) prevSlot.classList.remove('selected');
+            swapCandidate = null;
         }
     }
 
     function executeSwap(cand1, cand2) {
         let p1, p2, idx1, idx2;
 
-        
+        // ── Open Slot swap: sitting player fills an empty court slot ──
+        // Normalise so open is always cand2, sitting player is always cand1
+        if (cand1.location === 'open' || cand2.location === 'open') {
+            if (cand1.location === 'open') { const tmp = cand1; cand1 = cand2; cand2 = tmp; }
+
+            // cand1 = sitting player, cand2 = open slot (courtIdx, slotIdx)
+            const sittingIdx = currentSitting.findIndex(p => p.id === cand1.id);
+            const sittingPlayer = currentSitting[sittingIdx];
+
+            // Move player from bench to court arrays
+            currentSitting.splice(sittingIdx, 1);
+            currentPlaying.push(sittingPlayer);
+
+            // Decrease sit count — player is now playing (mirrors existing bench→court swap logic)
+            sittingPlayer.sits--;
+
+            // Place player into the exact open slot in courtGroups (replaces null sentinel)
+            if (!courtGroups[cand2.courtIdx]) courtGroups[cand2.courtIdx] = [];
+            courtGroups[cand2.courtIdx][cand2.slotIdx] = sittingPlayer;
+
+            updateIntervalHistory();
+            renderCourts_fromGroups();
+            renderBench(currentSitting);
+            return;
+        }
+
+        // ── Standard swap: playing↔playing, playing↔sitting, sitting↔sitting ──
+
+        // Find P1
         if (cand1.location === 'playing') {
             idx1 = currentPlaying.findIndex(p => p.id === cand1.id);
             p1 = currentPlaying[idx1];
@@ -1163,7 +1204,7 @@
             p1 = currentSitting[idx1];
         }
 
-        
+        // Find P2
         if (cand2.location === 'playing') {
             idx2 = currentPlaying.findIndex(p => p.id === cand2.id);
             p2 = currentPlaying[idx2];
@@ -1172,7 +1213,7 @@
             p2 = currentSitting[idx2];
         }
 
-        
+        // Perform swap across arrays
         if (cand1.location === 'playing' && cand2.location === 'playing') {
             [currentPlaying[idx1], currentPlaying[idx2]] = [currentPlaying[idx2], currentPlaying[idx1]];
         } else if (cand1.location === 'sitting' && cand2.location === 'sitting') {
@@ -1180,32 +1221,35 @@
         } else if (cand1.location === 'playing' && cand2.location === 'sitting') {
             currentPlaying[idx1] = p2;
             currentSitting[idx2] = p1;
-            p1.sits++; p2.sits--; 
+            p1.sits++; p2.sits--; // playing→bench gains sit; bench→court loses sit
         } else {
             currentSitting[idx1] = p2;
             currentPlaying[idx2] = p1;
-            p1.sits--; p2.sits++; 
+            p1.sits--; p2.sits++; // bench→court loses sit; playing→bench gains sit
         }
 
-        
+        // Sync courtGroups with the swap so display stays accurate
         if (cand1.location === 'playing' && cand2.location === 'playing') {
-            
+            // Both on court: two-pass find then replace to avoid cross-court collision
+            let c1Idx = -1, p1Slot = -1, c2Idx = -1, p2Slot = -1;
             for (let c = 0; c < courtGroups.length; c++) {
-                const i1 = courtGroups[c].findIndex(p => p.id === cand1.id);
-                if (i1 >= 0) courtGroups[c][i1] = p2;
-                const i2 = courtGroups[c].findIndex(p => p.id === cand2.id);
-                if (i2 >= 0) courtGroups[c][i2] = p1;
+                const i1 = courtGroups[c].findIndex(p => p && p.id === cand1.id);
+                if (i1 >= 0) { c1Idx = c; p1Slot = i1; }
+                const i2 = courtGroups[c].findIndex(p => p && p.id === cand2.id);
+                if (i2 >= 0) { c2Idx = c; p2Slot = i2; }
             }
+            if (c1Idx >= 0) courtGroups[c1Idx][p1Slot] = p2;
+            if (c2Idx >= 0) courtGroups[c2Idx][p2Slot] = p1;
         } else if (cand1.location === 'playing') {
-            
+            // cand1 leaves court → replace with cand2 (p2); null-safe search
             for (let c = 0; c < courtGroups.length; c++) {
-                const i = courtGroups[c].findIndex(p => p.id === cand1.id);
+                const i = courtGroups[c].findIndex(p => p && p.id === cand1.id);
                 if (i >= 0) { courtGroups[c][i] = p2; break; }
             }
         } else if (cand2.location === 'playing') {
-            
+            // cand2 leaves court → replace with cand1 (p1); null-safe search
             for (let c = 0; c < courtGroups.length; c++) {
-                const i = courtGroups[c].findIndex(p => p.id === cand2.id);
+                const i = courtGroups[c].findIndex(p => p && p.id === cand2.id);
                 if (i >= 0) { courtGroups[c][i] = p1; break; }
             }
         }
@@ -1215,17 +1259,18 @@
         renderBench(currentSitting);
     }
 
-    
+    // --- MODALS & ALERTS ---
     function showConfirmation(action, payload = null) {
         let msg = "";
         if (action === 'nextInterval') msg = "Confirm Reshuffle for next interval?";
         else if (action === 'endSession') msg = "End Session? This will reset all data.";
         else if (action === 'swap') msg = "Confirm player swap?";
+        else if (action === 'removePlayer') msg = `Remove ${payload.name} from the session?`;
         else if (action === 'resumeSession') msg = "This will restore your last session exactly as it was — courts, bench, and player assignments. The session log and sit counts will continue from where you left off.";
 
         document.getElementById('confirmMessage').innerText = msg;
 
-        
+        // Dynamically label buttons and style message based on action
         const yesBtn = document.getElementById('confirmYes');
         const noBtn  = document.getElementById('confirmNo');
         const msgEl  = document.getElementById('confirmMessage');
@@ -1261,17 +1306,24 @@
             } else if (action === 'swap') {
                 executeSwap(payload.cand1, payload.cand2);
                 swapCandidate = null;
-            }
-            else if (action === 'resumeSession') { resumeSession(); }
+            } else if (action === 'removePlayer') {
+                // Confirmed removal — clear any pending swap state then remove
+                swapCandidate = null;
+                removePlayerFromSession(payload.id);
+            } else if (action === 'resumeSession') { resumeSession(); }
         };
 
         document.getElementById('confirmNo').onclick = () => {
             document.getElementById('confirmModal').style.display = 'none';
             if (action === 'swap') {
-                
+                // Clear highlights on both candidates when swap is cancelled
                 if (payload.cand1) {
-                    const slot = document.getElementById(`player-${payload.cand1.id}`);
-                    if (slot) slot.classList.remove('selected');
+                    const s1 = document.getElementById('slot-' + payload.cand1.id);
+                    if (s1) s1.classList.remove('selected');
+                }
+                if (payload.cand2) {
+                    const s2 = document.getElementById('slot-' + payload.cand2.id);
+                    if (s2) s2.classList.remove('selected');
                 }
                 swapCandidate = null;
             }
@@ -1308,19 +1360,30 @@
     }
 
     function renderCourts_fromGroups() {
-        
+        // Always renders numCourts courts so courts never disappear after player removal.
+        // null entries in courtGroups (set when a player is removed) render as tappable Open
+        // slots in their exact original position — no slot shifting occurs.
+        // All slots use universal id prefix "slot-" so startSwapSelect highlight works for
+        // both player slots and Open slots consistently.
         const container = document.getElementById('courts-container');
         container.innerHTML = "";
-        courtGroups.forEach((group, idx) => {
-            const courtNum = idx + 1;
-            container.innerHTML += `
-                <div class="court-box">
-                    <div class="court-header">Court ${courtNum}</div>
-                    <div class="court-players">
-                        ${group.map(player => `<div class="player-slot" id="player-${player.id}" onclick="startSwapSelect(${player.id}, 'playing')">${player.name}</div>`).join('')}
-                    </div>
-                </div>`;
-        });
+        for (let c = 0; c < numCourts; c++) {
+            const group = courtGroups[c] || [];
+            const courtNum = c + 1;
+            let slotsHTML = '';
+            for (let s = 0; s < 4; s++) {
+                const player = group[s]; // player object, null sentinel, or undefined
+                if (player) {
+                    // Real player slot — universal slot- prefix for highlight targeting
+                    slotsHTML += `<div class="player-slot" id="slot-${player.id}" onclick="startSwapSelect(${player.id}, 'playing')">${player.name}</div>`;
+                } else {
+                    // Null sentinel or missing — tappable Open in exact position
+                    const openId = 'open-' + c + '-' + s;
+                    slotsHTML += `<div class="player-slot open-slot" id="slot-${openId}" onclick="startSwapSelect('${openId}', 'open', ${c}, ${s})">Open</div>`;
+                }
+            }
+            container.innerHTML += `<div class="court-box"><div class="court-header">Court ${courtNum}</div><div class="court-players">${slotsHTML}</div></div>`;
+        }
     }
 
     function renderCourts(list, active) {
@@ -1333,14 +1396,17 @@
                 <div class="court-box">
                     <div class="court-header">Court ${i} ${isFilled ? '' : '- EMPTY'}</div>
                     <div class="court-players">
-                        ${isFilled ? p.map(player => `<div class="player-slot" id="player-${player.id}" onclick="startSwapSelect(${player.id}, 'playing')">${player.name}</div>`).join('') : '<div class="player-slot">Open</div><div class="player-slot">Open</div><div class="player-slot">Open</div><div class="player-slot">Open</div>'}
+                        ${isFilled ? p.map(player => `<div class="player-slot" id="slot-${player.id}" onclick="startSwapSelect(${player.id}, 'playing')">${player.name}</div>`).join('') : '<div class="player-slot">Open</div><div class="player-slot">Open</div><div class="player-slot">Open</div><div class="player-slot">Open</div>'}
                     </div>
                 </div>`;
         }
     }
 
     function renderBench(list) {
-        document.getElementById('bench-container').innerHTML = list.length ? list.map(p => `<div class="player-slot" id="player-${p.id}" onclick="startSwapSelect(${p.id}, 'sitting')">${p.name} <small>(Sits: ${p.sits})</small></div>`).join('') : "<small>No one sitting.</small>";
+        // Uses universal slot- prefix so startSwapSelect highlight logic works for bench players
+        document.getElementById('bench-container').innerHTML = list.length
+            ? list.map(p => `<div class="player-slot" id="slot-${p.id}" onclick="startSwapSelect(${p.id}, 'sitting')">${p.name} <small>(Sits: ${p.sits})</small></div>`).join('')
+            : '<small>No one sitting.</small>';
     }
 
     function renderNewArrivals() {
@@ -1374,6 +1440,7 @@
     }
 
     function removePlayerFromSession(id) {
+        swapCandidate = null;
         const wasPlaying = sessionPlayers.some(p => p.id === id);
         if (wasPlaying) {
             const leaving = sessionPlayers.find(p => p.id === id);
@@ -1383,13 +1450,12 @@
         newArrivals    = newArrivals.filter(p => p.id !== id);
         currentPlaying = currentPlaying.filter(p => p.id !== id);
         currentSitting = currentSitting.filter(p => p.id !== id);
-        
-        courtGroups = courtGroups.map(court => court.filter(p => p.id !== id));
-        const activeCourts = courtGroups.filter(c => c.length > 0).length;
+        // Replace removed player with null sentinel — preserves exact slot position so Open appears where player was
+        courtGroups = courtGroups.map(court => court.map(p => (p && p.id === id) ? null : p));
         renderCourts_fromGroups();
         renderBench(currentSitting);
         renderSessionRoster(); renderAvailableRollCallPlayers(); renderNewArrivals();
-        
+        // *** PROTECTED — Add/Remove/Resume: persist removal immediately so Resume reflects correct state ***
         saveSessionState();
     }
 
@@ -1414,8 +1480,19 @@
     function showRemovePlayerModal() {
         toggleBackgroundScroll(true);
         const all = sessionPlayers.concat(newArrivals).sort(sortPlayersAlphabetical);
-        document.getElementById('remove-player-list').innerHTML = all.map(p => `<li onclick="removePlayerFromSession(${p.id}); document.getElementById('removePlayerModal').style.display='none'; toggleBackgroundScroll(false);">${p.name}</li>`).join('') || "<li>No players to remove</li>";
+        // Route each player tap through confirmation before removing
+        document.getElementById('remove-player-list').innerHTML = all.map(p =>
+            `<li onclick="pendingRemove(${p.id}, '${p.name}')">${p.name}</li>`
+        ).join('') || "<li>No players to remove</li>";
         document.getElementById('removePlayerModal').style.display = 'flex';
+    }
+
+    // Called when a player is tapped in the Remove modal — shows confirmation before acting
+    function pendingRemove(id, name) {
+        // Close the remove modal first, then show confirmation dialog
+        document.getElementById('removePlayerModal').style.display = 'none';
+        toggleBackgroundScroll(false);
+        showConfirmation('removePlayer', { id, name });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1618,7 +1695,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 2.99c</p>
+                    <p class="sub-screen-header">Version 2.102</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
