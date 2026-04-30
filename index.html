@@ -369,6 +369,58 @@
 </style>
     
 <script>
+    // ============================================================
+    // COURTFLOW — DOMAIN LOCK (V2.108)
+    // Authorised hostnames only. To add or remove a location,
+    // update the ALLOWED_HOSTS array below.
+    //
+    // ALLOWED LOCATIONS:
+    //   'mlalansingh.github.io' — GitHub Pages (primary hosting,
+    //                             iPhone access & shared access)
+    //   ''                      — file:// protocol (local dev on
+    //                             any drive: C:, E:, etc.)
+    //
+    // FUTURE / SAAS:
+    //   'www.courtflow.app'     — Uncomment when SaaS domain is live
+    // ============================================================
+    (function () {
+        const ALLOWED_HOSTS = [
+            'mlalansingh.github.io', // GitHub Pages — primary authorised location
+            '',                      // file:// protocol — local development only
+            // 'www.courtflow.app', // FUTURE: SaaS domain — uncomment when ready
+        ];
+        if (!ALLOWED_HOSTS.includes(window.location.hostname)) {
+            document.open();
+            document.write([
+                '<!DOCTYPE html><html><head>',
+                '<meta charset="UTF-8">',
+                '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
+                '<title>CourtFlow</title>',
+                '<style>',
+                '  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;',
+                '         background: #2b3d4f; display: flex; justify-content: center;',
+                '         align-items: center; min-height: 100vh; margin: 0; }',
+                '  .box { background: #fff; border-radius: 12px; padding: 40px 30px;',
+                '         text-align: center; max-width: 380px; width: 90%;',
+                '         box-shadow: 0 12px 40px rgba(0,0,0,0.4); }',
+                '  h2   { color: #f1c40f; margin: 0 0 8px 0; font-size: 1.6rem; }',
+                '  .sub { color: #666; font-size: 0.85rem; margin-top: 4px; }',
+                '  p    { color: #2c3e50; margin: 20px 0 6px 0; }',
+                '</style></head><body>',
+                '<div class="box">',
+                '  <h2>CourtFlow</h2>',
+                '  <p class="sub">Court Rotation Manager</p>',
+                '  <p>CourtFlow is a private application.</p>',
+                '  <p>This copy is not authorised to run in this location.</p>',
+                '</div>',
+                '</body></html>'
+            ].join(''));
+            document.close();
+        }
+    })();
+</script>
+
+<script>
     // --- DATA ---
     let clubRoster = [
         { id: 2, name: "Alex" }, { id: 17, name: "Ali" }, { id: 19, name: "Barry" }, { id: 25, name: "Brian" },
@@ -523,6 +575,8 @@
         if (intervalEl) intervalEl.textContent = currentIntervalCount > 0
             ? 'Interval: ' + currentIntervalCount
             : 'No session in progress.';
+        const playersEl = document.getElementById('current-session-players'); // V2.107
+        if (playersEl) playersEl.textContent = currentIntervalCount > 0 ? 'Players: ' + sessionPlayers.length : '';
         // Sit counts (corrected display)
         const sitDiv = document.getElementById('current-session-sit-counts');
         if (sitDiv) {
@@ -573,6 +627,7 @@
                 `<p style="margin-bottom:8px;"><strong>Players checked in:</strong> ${st.sessionPlayers.length}</p>` +
                 `<p style="margin-bottom:8px;"><strong>Interval:</strong> ${st.currentIntervalCount}</p>` +
                 `<p style="margin-bottom:8px;"><strong>Courts:</strong> ${st.numCourts}</p>` +
+                `<p style="margin-bottom:8px;"><strong>Total Intervals Per Session:</strong> ${st.totalIntervals === 0 ? '0 &#8211; Continuous' : st.totalIntervals}</p>` +
                 waiting +
                 `<p style="margin-top:12px; color:var(--secondary); font-size:0.85rem;">Tap Resume to continue from where you left off.</p>`;
             confirmBtn.style.display = 'block';
@@ -604,7 +659,7 @@
         currentIntervalCount = st.currentIntervalCount;
         intervalHistory      = st.intervalHistory;
         numCourts            = st.numCourts;
-        totalIntervals       = st.totalIntervals || 6;
+        totalIntervals       = st.totalIntervals ?? 6; // V2.106 fix: ?? prevents 0 (continuous play) from incorrectly restoring as 6
         checkInCounter       = st.checkInCounter;
         arrivalLog           = st.arrivalLog   || [];
         departureLog         = st.departureLog || [];
@@ -1439,8 +1494,9 @@
         if (p) { 
             const newP = { ...p, sits: 0, checkInIndex: ++checkInCounter };
             if (document.getElementById('screen-session').classList.contains('active')) {
-                newArrivals.push(newP); renderNewArrivals(); saveSessionState();
-                arrivalLog.push({ beforeInterval: currentIntervalCount + 1, name: newP.name });
+                newArrivals.push(newP); renderNewArrivals();
+                arrivalLog.push({ beforeInterval: currentIntervalCount + 1, name: newP.name }); // V2.106 fix: log before save so all arrivals are captured
+                saveSessionState();
             } else {
                 sessionPlayers.push(newP); renderSessionRoster(); renderAvailableRollCallPlayers();
             }
@@ -1469,12 +1525,13 @@
 
     function startSession() {
         sessionPlayers.forEach(p => { if (!p.joinInterval) p.joinInterval = 1; });
-        if (sessionPlayers.length < 7) { alert("Roll Call required — 7+ players needed."); return; }
+        if (sessionPlayers.length < 6) { alert("Roll Call required: 6 players needed."); return; }
         arrivalLog   = [];
         departureLog = [];
         localStorage.removeItem('mff_arrival_log');
         localStorage.removeItem('mff_departure_log');
         showSessionScreen(); generateAssignments();
+        saveSessionState(); // V2.107 fix: persist I1 immediately so Resume never loads a stale session
     }
 
     function showAddPlayerModal() {
@@ -1665,6 +1722,7 @@
                 <div class="card">
                     <h2>Current Session Info</h2>
                     <p id="current-session-interval" class="sub-screen-header"></p>
+                    <p id="current-session-players" class="sub-screen-header"></p>
                     <h3 style="margin:10px 0 6px;">Sit Counts</h3>
                     <div id="current-session-sit-counts"><em>No active session.</em></div>
                     <hr style="margin:12px 0;">
@@ -1703,7 +1761,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 2.105</p>
+                    <p class="sub-screen-header">Version 2.108</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
