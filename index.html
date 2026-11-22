@@ -1732,7 +1732,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 2.118</p>
+                    <p class="sub-screen-header">Version 3.119</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
@@ -1795,23 +1795,24 @@
 
     function broadcastToWhatsApp() {
         const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        const courtBadges = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣'];
         const courtLines = (courtGroups || [])
             .map((group, index) => {
-                const names = group.map(p => p.name).join(' / ');
-                return `*Court ${index + 1}:* ${names}`;
+                const badge = courtBadges[index] || `*Court ${index + 1}:*`;
+                const names = group.map(p => p ? p.name : 'Open').join(' / ');
+                return `${badge}  ${names}`;
             })
-            .join('\n\n');
+            .join('\n');
 
         const sittingText = (currentSitting && currentSitting.length)
-            ? currentSitting.map(p => `${p.name}(${p.sits})`).join(', ')
-            : 'None';
+            ? currentSitting.map(p => `${p.name} (${p.sits})`).join(', ')
+            : 'No one';
 
         const message =
-            `🏸 *CourtFlow*\n\n` +
-            `*Interval:  ${currentIntervalCount}*  _[${time}]_\n` +
+            `🏸 *CourtFlow*  |  *Interval ${currentIntervalCount}*  _(${time})_\n` +
             `───────────────\n\n` +
             `${courtLines}\n\n` +
-            `*Sitting:* ${sittingText}\n\n` +
+            `🪑  *Sitting:* ${sittingText}\n` +
             `───────────────`;
 
         window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
