@@ -84,6 +84,19 @@
             margin-right: 5px;
         }
 
+        #back-btn {
+            width: 34px;
+            background: none;
+            border: none;
+            color: #8a95a0;
+            font-size: 2rem;
+            line-height: 1;
+            text-shadow: 0 1px 0 #ffffff, 0 -1px 0 rgba(0, 0, 0, 0.25);
+            cursor: pointer;
+            padding: 0;
+            visibility: hidden;
+        }
+
         .main-content-area {
             padding: 15px;
             overflow-y: auto; 
@@ -369,55 +382,7 @@
 </style>
     
 <script>
-    // ============================================================
-    // COURTFLOW — DOMAIN LOCK (V2.108)
-    // Authorised hostnames only. To add or remove a location,
-    // update the ALLOWED_HOSTS array below.
-    //
-    // ALLOWED LOCATIONS:
-    //   'mlalansingh.github.io' — GitHub Pages (primary hosting,
-    //                             iPhone access & shared access)
-    //   ''                      — file:// protocol (local dev on
-    //                             any drive: C:, E:, etc.)
-    //
-    // FUTURE / SAAS:
-    //   'www.courtflow.app'     — Uncomment when SaaS domain is live
-    // ============================================================
-    (function () {
-        const ALLOWED_HOSTS = [
-            'mlalansingh.github.io', // GitHub Pages — primary authorised location
-            '',                      // file:// protocol — local development only
-            // 'www.courtflow.app', // FUTURE: SaaS domain — uncomment when ready
-        ];
-        if (!ALLOWED_HOSTS.includes(window.location.hostname)) {
-            document.open();
-            document.write([
-                '<!DOCTYPE html><html><head>',
-                '<meta charset="UTF-8">',
-                '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
-                '<title>CourtFlow</title>',
-                '<style>',
-                '  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;',
-                '         background: #2b3d4f; display: flex; justify-content: center;',
-                '         align-items: center; min-height: 100vh; margin: 0; }',
-                '  .box { background: #fff; border-radius: 12px; padding: 40px 30px;',
-                '         text-align: center; max-width: 380px; width: 90%;',
-                '         box-shadow: 0 12px 40px rgba(0,0,0,0.4); }',
-                '  h2   { color: #f1c40f; margin: 0 0 8px 0; font-size: 1.6rem; }',
-                '  .sub { color: #666; font-size: 0.85rem; margin-top: 4px; }',
-                '  p    { color: #2c3e50; margin: 20px 0 6px 0; }',
-                '</style></head><body>',
-                '<div class="box">',
-                '  <h2>CourtFlow</h2>',
-                '  <p class="sub">Court Rotation Manager</p>',
-                '  <p>CourtFlow is a private application.</p>',
-                '  <p>This copy is not authorised to run in this location.</p>',
-                '</div>',
-                '</body></html>'
-            ].join(''));
-            document.close();
-        }
-    })();
+    // Domain Lock removed for local testing
 </script>
 
 <script>
@@ -629,7 +594,7 @@
                 `<p style="margin-bottom:8px;"><strong>Courts:</strong> ${st.numCourts}</p>` +
                 `<p style="margin-bottom:8px;"><strong>Total Intervals Per Session:</strong> ${st.totalIntervals === 0 ? '0 &#8211; Continuous' : st.totalIntervals}</p>` +
                 waiting +
-                `<p style="margin-top:12px; color:var(--secondary); font-size:0.85rem;">Tap Resume to continue from where you left off.</p>`;
+                `<p style="margin-top:12px; color:var(--secondary); font-size:0.85rem;">Session Crash/Refresh recovery - Tap Resume to continue from where you left off.</p>`;
             confirmBtn.style.display = 'block';
         } else {
             summaryDiv.innerHTML = '<em>No saved session found.</em>';
@@ -1597,13 +1562,13 @@
         for authorized use only. Unauthorized copying, distribution, reverse engineering,
         or any form of reproduction is strictly prohibited.</em></p>
         <p><em><strong>&#169; 2026 ML All Right Reserved.</strong></em></p>
-        <button id="copyrightAckBtn">I Acknowledge</button>
+        <button id="copyrightAckBtn" onclick="localStorage.setItem('mffnoticeconfirmed','1');document.getElementById('copyrightOverlay').style.display='none';">I Acknowledge</button>
     </div>
 </div>
 
     <div class="container">
         <header>
-            <div style="width:34px;"></div>
+            <button id="back-btn" onclick="handleHeaderBack()">&#8249;</button>
             <span>🏸 <em>CourtFlow</em></span>
             <button id="settings-btn" onclick="showSettingsScreen()">⚙️</button>
         </header>
@@ -1633,7 +1598,7 @@
                     <hr>
                     <h3 id="roll-call-roster-header">Checked-In: 0 Players</h3>
                     <div id="session-roster-list"></div>
-                    <button class="btn btn-primary" onclick="showSetupScreen()">Done With Roll Call</button>
+                    
                 </div>
             </div>
 
@@ -1654,7 +1619,7 @@
                     <button class="btn btn-action" onclick="showAddPlayerModal()">+ Add Player</button>
                     <button class="btn btn-warning" onclick="showRemovePlayerModal()">- Remove Player</button>
                 </div>
-                <button class="btn btn-danger" onclick="showConfirmation('endSession')">End Session</button>
+                <button class="btn btn-primary" style="background-color:#25D366; color:#fff;" onclick="broadcastToWhatsApp()">💬 Broadcast to WhatsApp</button>
             </div>
 
             <div id="screen-settings" class="screen">
@@ -1681,11 +1646,23 @@
                     <div class="settings-menu-item" onclick="showSettingsResume()">
                         <span>Resume Session</span><span class="menu-arrow">&#8250;</span>
                     </div>
+                    <div class="settings-menu-item" onclick="showSettingsEndSession()">
+                        <span>End Current Session</span><span class="menu-arrow">&#8250;</span>
+                    </div>
                 </div>
-                <button class="btn btn-action" onclick="backFromSettings()">&#8249; Back</button>
             </div>
 
             <!-- Settings: Number of Courts -->
+            
+            <!-- Settings: End Current Session -->
+            <div id="screen-settings-end-session" class="screen">
+                <div class="card">
+                    <h2>End Current Session</h2>
+                    <div id="end-session-summary" style="font-size: 0.9rem; color: var(--dark); margin-bottom: 15px;"></div>
+                    <button id="end-session-confirm-btn" class="btn btn-danger" onclick="showConfirmation('endSession')" style="display:none;">End Current Session</button>
+                </div>
+            </div>
+
             <div id="screen-settings-courts" class="screen">
                 <div class="card">
                     <h2>Number of Courts</h2>
@@ -1693,7 +1670,6 @@
                     <input type="number" id="court-count-setting" value="3" min="1" max="10" style="margin-bottom:12px;">
                 </div>
                 <button class="btn btn-success" onclick="saveCourtSettings()">Save</button>
-                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
             </div>
 
             <!-- Settings: Number of Intervals -->
@@ -1705,7 +1681,6 @@
                     <p style="font-size:0.8rem;color:var(--secondary);margin:0 0 12px 0;">Set to 0 to disable. Players who join after the halfway point of the session will never be selected to sit out.</p>
                 </div>
                 <button class="btn btn-success" onclick="saveIntervalSettings()">Save</button>
-                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
             </div>
 
             <!-- Settings: Club Roster -->
@@ -1714,7 +1689,6 @@
                     <h2>Club Roster</h2>
                     <div id="club-roster-management-list"></div>
                 </div>
-                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
             </div>
 
             <!-- Settings: Current Session Info -->
@@ -1729,7 +1703,6 @@
                     <h3 style="margin:0 0 6px;">Session Log</h3>
                     <div id="current-session-log"><em>No intervals played yet.</em></div>
                 </div>
-                <button class="btn btn-action" onclick="backFromSettings()">&#8249; Back</button>
             </div>
 
             <!-- Settings: Previous Session Info (combined) -->
@@ -1742,7 +1715,6 @@
                     <h3 style="margin: 16px 0 6px; font-size: 1rem; color: var(--secondary);">Session Log</h3>
                     <div id="settings-session-log"><em>No previous session recorded.</em></div>
                 </div>
-                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
             </div>
 
             <!-- Settings: Resume Session -->
@@ -1754,14 +1726,13 @@
                     </div>
                 </div>
                 <button class="btn btn-success" id="resume-confirm-btn" onclick="showConfirmation('resumeSession')" style="display:none; margin-bottom:10px;">Resume</button>
-                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
             </div>
 
             <!-- Settings: About -->
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 2.108</p>
+                    <p class="sub-screen-header">Version 2.118</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
@@ -1770,7 +1741,6 @@
                     </p>
                     <p style="font-size:0.85rem; font-style:italic;"><strong>&#169; 2026 ML All Right Reserved.</strong></p>
                 </div>
-                <button class="btn btn-action" onclick="backToSettingsMenu()">&#8249; Back</button>
             </div>
         </div> 
     </div> 
@@ -1822,6 +1792,80 @@
         document.getElementById('copyrightOverlay').style.display = 'none';
     });
     /* ─────────────────────────────────────────────────────────── */
+
+    function broadcastToWhatsApp() {
+        const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        const courtLines = (courtGroups || [])
+            .map((group, index) => {
+                const names = group.map(p => p.name).join(' / ');
+                return `*Court ${index + 1}:* ${names}`;
+            })
+            .join('\n\n');
+
+        const sittingText = (currentSitting && currentSitting.length)
+            ? currentSitting.map(p => `${p.name}(${p.sits})`).join(', ')
+            : 'None';
+
+        const message =
+            `🏸 *CourtFlow*\n\n` +
+            `*Interval:  ${currentIntervalCount}*  _[${time}]_\n` +
+            `───────────────\n\n` +
+            `${courtLines}\n\n` +
+            `*Sitting:* ${sittingText}\n\n` +
+            `───────────────`;
+
+        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    function showSettingsEndSession() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        const summaryDiv = document.getElementById('end-session-summary');
+        const confirmBtn = document.getElementById('end-session-confirm-btn');
+        if (typeof sessionPlayers !== 'undefined' && sessionPlayers.length > 0 && typeof currentIntervalCount !== 'undefined' && currentIntervalCount > 0) {
+            summaryDiv.innerHTML =
+                `<p style="margin-bottom:8px;"><strong>Players checked in:</strong> ${sessionPlayers.length}</p>` +
+                `<p style="margin-bottom:8px;"><strong>Current Interval:</strong> ${currentIntervalCount}</p>` +
+                `<p style="margin-bottom:8px;"><strong>Courts:</strong> ${numCourts}</p>` +
+                `<p style="margin-top:12px; color:var(--danger);"><strong>This will reset all current session data.</strong></p>`;
+            confirmBtn.style.display = 'block';
+        } else {
+            summaryDiv.innerHTML = '<em>No active session to end.</em>';
+            confirmBtn.style.display = 'none';
+        }
+        document.getElementById('screen-settings-end-session').classList.add('active');
+    }
+
+    function updateBackButtonVisibility() {
+        const backBtn = document.getElementById('back-btn');
+        if (!backBtn) return;
+        const activeScreen = document.querySelector('.screen.active');
+        if (activeScreen && (activeScreen.id.startsWith('screen-settings') || activeScreen.id === 'screen-roll-call')) {
+            backBtn.style.visibility = 'visible';
+        } else {
+            backBtn.style.visibility = 'hidden';
+        }
+    }
+
+    function handleHeaderBack() {
+        const activeScreen = document.querySelector('.screen.active');
+        if (!activeScreen) return;
+        if (activeScreen.id === 'screen-roll-call') {
+            showSetupScreen();
+        } else if (activeScreen.id === 'screen-settings') {
+            backFromSettings();
+        } else {
+            backToSettingsMenu();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const mainArea = document.querySelector('.main-content-area');
+        if (mainArea) {
+            const observer = new MutationObserver(updateBackButtonVisibility);
+            observer.observe(mainArea, { attributes: true, subtree: true, attributeFilter: ['class'] });
+        }
+        updateBackButtonVisibility();
+    });
 </script>
 
 </body>
