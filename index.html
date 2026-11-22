@@ -1619,7 +1619,7 @@
                     <button class="btn btn-action" onclick="showAddPlayerModal()">+ Add Player</button>
                     <button class="btn btn-warning" onclick="showRemovePlayerModal()">- Remove Player</button>
                 </div>
-                <button class="btn btn-primary" style="background-color:#25D366; color:#fff;" onclick="broadcastToWhatsApp()">💬 Broadcast to WhatsApp</button>
+                <button class="btn btn-primary" style="background-color:#25D366; color:#fff;" onclick="broadcastToWhatsApp()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#000000" style="vertical-align:-3px; margin-right:6px;" aria-hidden="true"><path d="M18 3v18l-8-4H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5l8-4zm2 5.5a4.5 4.5 0 0 1 0 7v-7zM6 17l1.5 4h2.2l-1.5-4H6z"/></svg>Broadcast to WhatsApp</button>
             </div>
 
             <div id="screen-settings" class="screen">
@@ -1732,7 +1732,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.119</p>
+                    <p class="sub-screen-header">Version 3.120</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
@@ -1802,17 +1802,18 @@
                 const names = group.map(p => p ? p.name : 'Open').join(' / ');
                 return `${badge}  ${names}`;
             })
-            .join('\n');
+            .join('\n\n');
 
         const sittingText = (currentSitting && currentSitting.length)
             ? currentSitting.map(p => `${p.name} (${p.sits})`).join(', ')
             : 'No one';
 
         const message =
-            `🏸 *CourtFlow*  |  *Interval ${currentIntervalCount}*  _(${time})_\n` +
+            `🏸 *_CourtFlow_*\n\n` +
+            `*Interval ${currentIntervalCount}*  _(${time})_\n` +
             `───────────────\n\n` +
             `${courtLines}\n\n` +
-            `🪑  *Sitting:* ${sittingText}\n` +
+            `*Sitting:* ${sittingText}\n` +
             `───────────────`;
 
         window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
