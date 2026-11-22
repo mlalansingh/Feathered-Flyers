@@ -85,11 +85,11 @@
         }
 
         #back-btn {
-            width: 34px;
+            width: 42px;
             background: none;
             border: none;
             color: #8a95a0;
-            font-size: 2rem;
+            font-size: 2.5rem;
             line-height: 1;
             text-shadow: 0 1px 0 #ffffff, 0 -1px 0 rgba(0, 0, 0, 0.25);
             cursor: pointer;
@@ -307,7 +307,7 @@
             border: 1px solid #eee;
         }
     
-    /* ── V3.123 Branded Header Logo ─────────────────────────── */
+    /* ── V3.124 Branded Header Logo & Guest Slots ───────────── */
     #header-logo {
         height: 52px;
         width: auto;
@@ -315,6 +315,27 @@
         display: block;
         user-select: none;
         -webkit-user-drag: none;
+    }
+    .guest-slot-empty {
+        cursor: pointer;
+        background: #eef6f1;
+        border: 1px dashed #025F33;
+        color: #025F33;
+        font-style: italic;
+        justify-content: center;
+    }
+    .guest-del-btn {
+        background: rgba(0,0,0,0.18);
+        border: none;
+        color: #fff;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        font-size: 1rem;
+        line-height: 1;
+        cursor: pointer;
+        margin-left: 8px;
+        flex-shrink: 0;
     }
     /* ── V3.123 Interactive Spin/Swish Splash Screen ────────── */
     @keyframes splashSpinIn {
@@ -435,15 +456,36 @@
 <script>
     // --- DATA ---
     let clubRoster = [
-        { id: 2, name: "Alex" }, { id: 17, name: "Ali" }, { id: 19, name: "Barry" }, { id: 25, name: "Brian" },
-        { id: 10, name: "Eva" }, { id: 14, name: "Maggie" }, { id: 1, name: "Mitch" }, { id: 26, name: "Peter" },
-        { id: 15, name: "Pradeep" }, { id: 12, name: "Prem" }, { id: 4, name: "Roger" }, { id: 11, name: "Sherri" },
-        { id: 6, name: "Siva" }, { id: 9, name: "Steve S." }, { id: 8, name: "Steve V." }, { id: 3, name: "Sudesh" },
-        { id: 27, name: "Sujay" }, { id: 5, name: "Tharma" }, { id: 7, name: "Tharsini" }, { id: 18, name: "Tzu" },
-        { id: 13, name: "Vincent" }, { id: 16, name: "Wilfred" }, { id: 28, name: "Paul" }, { id: 29, name: "OiWun" },
-        { id: 21, name: "GUEST 1" }, { id: 22, name: "GUEST 2" },
-        { id: 23, name: "GUEST 3" }, { id: 24, name: "GUEST 4" }
+        { id: 1, name: "Alex" }, { id: 2, name: "Ali" }, { id: 3, name: "Maggie" }, { id: 4, name: "Mitch" },
+        { id: 5, name: "OiWun" }, { id: 6, name: "Paul" }, { id: 7, name: "Peter" }, { id: 8, name: "Pradeep" },
+        { id: 9, name: "Prem" }, { id: 10, name: "Roger" }, { id: 11, name: "Sherri" }, { id: 12, name: "Siva" },
+        { id: 13, name: "Steve V." }, { id: 14, name: "Sudesh" }, { id: 15, name: "Sujay" }, { id: 16, name: "Tharma" },
+        { id: 17, name: "Tharsini" }, { id: 18, name: "Tzu" }, { id: 19, name: "Vincent" }
     ];
+
+    function loadGuestSlots() {
+        try {
+            const raw = localStorage.getItem('mff_guest_slots');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length === 4) return parsed;
+            }
+        } catch (e) {}
+        return [
+            { id: 101, name: '' },
+            { id: 102, name: '' },
+            { id: 103, name: '' },
+            { id: 104, name: '' }
+        ];
+    }
+    let guestSlots = loadGuestSlots();
+    function saveGuestSlots() {
+        localStorage.setItem('mff_guest_slots', JSON.stringify(guestSlots));
+    }
+    function getAllRosterPlayers() {
+        const activeGuests = guestSlots.filter(g => g.name && g.name.trim() !== '');
+        return [...clubRoster, ...activeGuests];
+    }
 
     let sessionPlayers = []; 
     let newArrivals = [];    
@@ -1498,26 +1540,79 @@
 
     function renderClubRosterManagement() {
         const list = document.getElementById('club-roster-management-list');
-        list.innerHTML = [...clubRoster].sort(sortPlayersAlphabetical).map(p => `<div class="player-row" style="background:var(--card); border:1px solid #ccc; justify-content:start;"><span>${p.name}</span></div>`).join('');
+        list.innerHTML = getAllRosterPlayers().sort(sortPlayersAlphabetical).map(p => {
+            const isGuest = p.id >= 101;
+            const delBtn = isGuest ? `<button class="guest-del-btn" style="background:#dc3545;" onclick="deleteGuestSlot(${p.id}, event)" title="Delete guest">&times;</button>` : '';
+            return `<div class="player-row" style="background:var(--card); border:1px solid #ccc; justify-content:space-between;"><span>${p.name}${isGuest ? ' <em style="font-size:0.8rem; color:var(--secondary);">(Guest)</em>' : ''}</span>${delBtn}</div>`;
+        }).join('');
+    }
+
+    function promptAddGuest(slotId, mode) {
+        const slot = guestSlots.find(g => g.id === slotId);
+        if (!slot) return;
+        const entered = prompt('Enter guest name:');
+        if (!entered) return;
+        const clean = entered.trim();
+        if (!clean) return;
+        slot.name = clean;
+        saveGuestSlots();
+        renderClubRosterManagement();
+        renderFullClubRosterDisplay();
+        if (mode === 'addScreen') {
+            addPlayerToSession(slot.id, true);
+        } else {
+            addPlayerToSession(slot.id, false);
+        }
+    }
+
+    function deleteGuestSlot(slotId, event) {
+        if (event) event.stopPropagation();
+        const slot = guestSlots.find(g => g.id === slotId);
+        if (!slot) return;
+        if (!confirm(`Delete saved guest "${slot.name}"?`)) return;
+        slot.name = '';
+        saveGuestSlots();
+        renderAvailableRollCallPlayers();
+        renderAddPlayerScreen();
+        renderClubRosterManagement();
+        renderFullClubRosterDisplay();
     }
 
     function renderAvailableRollCallPlayers() {
         const container = document.getElementById('roll-call-list-container');
         const addedIds = new Set(sessionPlayers.map(p => p.id));
-        const available = clubRoster.filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
-        container.innerHTML = available.map(p => `<div class="player-row" style="cursor:pointer; background:var(--success); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${p.id})">${p.name}</div>`).join('');
+        const available = getAllRosterPlayers().filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
+        const playerRows = available.map(p => {
+            const isGuest = p.id >= 101;
+            const delBtn = isGuest ? `<button class="guest-del-btn" onclick="deleteGuestSlot(${p.id}, event)" title="Delete guest">&times;</button>` : '';
+            return `<div class="player-row" style="cursor:pointer; background:var(--success); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${p.id}, false)"><span>${p.name}</span>${delBtn}</div>`;
+        }).join('');
+        const emptyGuestRows = guestSlots
+            .filter(g => !g.name || g.name.trim() === '')
+            .map(g => `<div class="player-row guest-slot-empty" onclick="promptAddGuest(${g.id}, 'rollCall')"><em>Add Guest...</em></div>`)
+            .join('');
+        container.innerHTML = playerRows + emptyGuestRows;
     }
 
-    function addPlayerToSession(id) {
-        const p = clubRoster.find(x => x.id === id);
-        if (p) { 
+    function addPlayerToSession(id, fromAddScreen = false) {
+        const p = getAllRosterPlayers().find(x => x.id === id);
+        if (p) {
             const newP = { ...p, sits: 0, checkInIndex: ++checkInCounter };
-            if (document.getElementById('screen-session').classList.contains('active')) {
-                newArrivals.push(newP); renderNewArrivals();
-                arrivalLog.push({ beforeInterval: currentIntervalCount + 1, name: newP.name }); // V2.106 fix: log before save so all arrivals are captured
-                saveSessionState();
+            const isSessionActive = fromAddScreen || document.getElementById('screen-session').classList.contains('active') || document.getElementById('screen-add-player').classList.contains('active');
+            if (isSessionActive) {
+                if (!sessionPlayers.some(x => x.id === id) && !newArrivals.some(x => x.id === id)) {
+                    newArrivals.push(newP);
+                    renderNewArrivals();
+                    arrivalLog.push({ beforeInterval: currentIntervalCount + 1, name: newP.name });
+                    saveSessionState();
+                }
+                renderAddPlayerScreen();
             } else {
-                sessionPlayers.push(newP); renderSessionRoster(); renderAvailableRollCallPlayers();
+                if (!sessionPlayers.some(x => x.id === id)) {
+                    sessionPlayers.push(newP);
+                    renderSessionRoster();
+                    renderAvailableRollCallPlayers();
+                }
             }
         }
     }
@@ -1537,7 +1632,7 @@
         courtGroups = courtGroups.map(court => court.map(p => (p && p.id === id) ? null : p));
         renderCourts_fromGroups();
         renderBench(currentSitting);
-        renderSessionRoster(); renderAvailableRollCallPlayers(); renderNewArrivals();
+        renderSessionRoster(); renderAvailableRollCallPlayers(); renderNewArrivals(); renderRemovePlayerScreen();
         // *** PROTECTED — Add/Remove/Resume: persist removal immediately so Resume reflects correct state ***
         saveSessionState();
     }
@@ -1553,29 +1648,48 @@
         saveSessionState(); // V2.107 fix: persist I1 immediately so Resume never loads a stale session
     }
 
-    function showAddPlayerModal() {
-        toggleBackgroundScroll(true);
+    function showAddPlayerScreen() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        renderAddPlayerScreen();
+        document.getElementById('screen-add-player').classList.add('active');
+    }
+
+    function renderAddPlayerScreen() {
+        const container = document.getElementById('add-player-screen-list');
+        if (!container) return;
         const addedIds = new Set(sessionPlayers.map(p => p.id).concat(newArrivals.map(p => p.id)));
-        const available = clubRoster.filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
-        document.getElementById('add-player-list').innerHTML = available.map(p => `<li onclick="addPlayerToSession(${p.id}); document.getElementById('addPlayerModal').style.display='none'; toggleBackgroundScroll(false);">${p.name}</li>`).join('') || "<li>All players checked in</li>";
-        document.getElementById('addPlayerModal').style.display = 'flex';
+        const available = getAllRosterPlayers().filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
+        const playerRows = available.map(p => {
+            const isGuest = p.id >= 101;
+            const delBtn = isGuest ? `<button class="guest-del-btn" onclick="deleteGuestSlot(${p.id}, event)" title="Delete guest">&times;</button>` : '';
+            return `<div class="player-row" style="cursor:pointer; background:var(--success); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${p.id}, true)"><span>${p.name}</span>${delBtn}</div>`;
+        }).join('');
+        const emptyGuestRows = guestSlots
+            .filter(g => !g.name || g.name.trim() === '')
+            .map(g => `<div class="player-row guest-slot-empty" onclick="promptAddGuest(${g.id}, 'addScreen')"><em>Add Guest...</em></div>`)
+            .join('');
+        container.innerHTML = (playerRows + emptyGuestRows) || '<p style="text-align:center; color:var(--secondary);"><em>All players checked in</em></p>';
+        const countEl = document.getElementById('add-player-waiting-count');
+        if (countEl) countEl.textContent = newArrivals.length;
     }
 
-    function showRemovePlayerModal() {
-        toggleBackgroundScroll(true);
+    function showRemovePlayerScreen() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        renderRemovePlayerScreen();
+        document.getElementById('screen-remove-player').classList.add('active');
+    }
+
+    function renderRemovePlayerScreen() {
+        const container = document.getElementById('remove-player-screen-list');
+        if (!container) return;
         const all = sessionPlayers.concat(newArrivals).sort(sortPlayersAlphabetical);
-        // Route each player tap through confirmation before removing
-        document.getElementById('remove-player-list').innerHTML = all.map(p =>
-            `<li onclick="pendingRemove(${p.id}, '${p.name}')">${p.name}</li>`
-        ).join('') || "<li>No players to remove</li>";
-        document.getElementById('removePlayerModal').style.display = 'flex';
+        container.innerHTML = all.map(p => {
+            const safeName = p.name.replace(/'/g, "\\'");
+            return `<div class="player-row" style="cursor:pointer; background:var(--danger); color:#fff; font-weight:bold; justify-content:center;" onclick="pendingRemove(${p.id}, '${safeName}')">${p.name}</div>`;
+        }).join('') || '<p style="text-align:center; color:var(--secondary);"><em>No players to remove</em></p>';
     }
 
-    // Called when a player is tapped in the Remove modal — shows confirmation before acting
     function pendingRemove(id, name) {
-        // Close the remove modal first, then show confirmation dialog
-        document.getElementById('removePlayerModal').style.display = 'none';
-        toggleBackgroundScroll(false);
         showConfirmation('removePlayer', { id, name });
     }
 
@@ -1588,7 +1702,7 @@
         if (savedDep) { departureLog = JSON.parse(savedDep); }
         
         const display = document.getElementById('club-roster-display');
-        display.textContent = [...clubRoster].sort(sortPlayersAlphabetical).map(p => p.name).join(', ');
+        display.textContent = getAllRosterPlayers().sort(sortPlayersAlphabetical).map(p => p.name).join(', ');
         renderSessionRoster();
         renderLastSessionHistory();
     });
@@ -1618,7 +1732,7 @@
         This application is the intellectual property of its developer and is licensed
         for authorized use only. Unauthorized copying, distribution, reverse engineering,
         or any form of reproduction is strictly prohibited.</em></p>
-        <p><em><strong>&#169; 2026 ML All Right Reserved.</strong></em></p>
+        <p><em><strong>&#169; ML All Right Reserved.</strong></em></p>
         <button id="copyrightAckBtn" onclick="localStorage.setItem('mffnoticeconfirmed','1');document.getElementById('copyrightOverlay').style.display='none';">I Acknowledge</button>
     </div>
 </div>
@@ -1673,10 +1787,28 @@
                     <div id="new-arrivals-container" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <button class="btn btn-action" onclick="showAddPlayerModal()">+ Add Player</button>
-                    <button class="btn btn-warning" onclick="showRemovePlayerModal()">- Remove Player</button>
+                    <button class="btn btn-action" onclick="showAddPlayerScreen()">Add Player</button>
+                    <button class="btn btn-warning" onclick="showRemovePlayerScreen()">Remove Player</button>
                 </div>
                 <button class="btn btn-primary" style="background-color:#25D366; color:#fff;" onclick="broadcastToWhatsApp()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#000000" style="vertical-align:-3px; margin-right:6px;" aria-hidden="true"><path d="M18 3v18l-8-4H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5l8-4zm2 5.5a4.5 4.5 0 0 1 0 7v-7zM6 17l1.5 4h2.2l-1.5-4H6z"/></svg>Broadcast to WhatsApp</button>
+            </div>
+
+            <!-- V3.124 Multi-Select Add Player Screen -->
+            <div id="screen-add-player" class="screen">
+                <div class="card">
+                    <h2>Add Player</h2>
+                    <p style="font-size:0.85rem; color:var(--secondary); margin-bottom:10px;">Tap players to add to New Arrivals (Waiting: <strong id="add-player-waiting-count">0</strong>)</p>
+                    <div id="add-player-screen-list" class="player-grid"></div>
+                </div>
+            </div>
+
+            <!-- V3.124 Multi-Select Remove Player Screen -->
+            <div id="screen-remove-player" class="screen">
+                <div class="card">
+                    <h2>Remove Player</h2>
+                    <p style="font-size:0.85rem; color:var(--secondary); margin-bottom:10px;">Tap players to remove from the current session</p>
+                    <div id="remove-player-screen-list" class="player-grid"></div>
+                </div>
             </div>
 
             <div id="screen-settings" class="screen">
@@ -1789,14 +1921,14 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.123</p>
+                    <p class="sub-screen-header">Version 3.124</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
                         licensed for authorized use only. Unauthorized copying, distribution,
                         reverse engineering, or any form of reproduction is strictly prohibited.
                     </p>
-                    <p style="font-size:0.85rem; font-style:italic;"><strong>&#169; 2026 ML All Right Reserved.</strong></p>
+                    <p style="font-size:0.85rem; font-style:italic;"><strong>&#169; ML All Right Reserved.</strong></p>
                 </div>
             </div>
         </div> 
@@ -1940,12 +2072,21 @@
 
     function updateBackButtonVisibility() {
         const backBtn = document.getElementById('back-btn');
-        if (!backBtn) return;
+        const settingsBtn = document.getElementById('settings-btn');
         const activeScreen = document.querySelector('.screen.active');
-        if (activeScreen && (activeScreen.id.startsWith('screen-settings') || activeScreen.id === 'screen-roll-call')) {
-            backBtn.style.visibility = 'visible';
-        } else {
-            backBtn.style.visibility = 'hidden';
+        if (backBtn) {
+            if (activeScreen && (activeScreen.id.startsWith('screen-settings') || activeScreen.id === 'screen-roll-call' || activeScreen.id === 'screen-add-player' || activeScreen.id === 'screen-remove-player')) {
+                backBtn.style.visibility = 'visible';
+            } else {
+                backBtn.style.visibility = 'hidden';
+            }
+        }
+        if (settingsBtn) {
+            if (activeScreen && activeScreen.id.startsWith('screen-settings')) {
+                settingsBtn.style.visibility = 'hidden';
+            } else {
+                settingsBtn.style.visibility = 'visible';
+            }
         }
     }
 
@@ -1954,6 +2095,8 @@
         if (!activeScreen) return;
         if (activeScreen.id === 'screen-roll-call') {
             showSetupScreen();
+        } else if (activeScreen.id === 'screen-add-player' || activeScreen.id === 'screen-remove-player') {
+            showSessionScreen();
         } else if (activeScreen.id === 'screen-settings') {
             backFromSettings();
         } else {
