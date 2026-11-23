@@ -307,7 +307,7 @@
             border: 1px solid #eee;
         }
     
-    /* ── V3.129 Branded Header Logo & Multi-Select Row Styles ─ */
+    /* ── V3.130 Branded Header Logo & Consistent Row Styles ─── */
     #header-logo {
         height: 52px;
         width: auto;
@@ -318,19 +318,6 @@
     }
     .btn, .player-row {
         touch-action: manipulation;
-    }
-    .player-row {
-        position: relative;
-    }
-    .row-check {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 1.15rem;
-        font-weight: 800;
-        color: var(--dark);
-        pointer-events: none;
     }
     .remove-player-row {
         cursor: pointer;
@@ -467,9 +454,8 @@
         { id: 23, name: "GUEST 3" }, { id: 24, name: "GUEST 4" }
     ];
 
-    // V3.129 visit-scoped state for Add Player & Roll Call-style Remove Player (zero popups!)
-    let addScreenInitialAvailableIds = new Set();
-    let addScreenSelectedIds = new Set();
+    // V3.130 visit-scoped state for Roll Call-style Add Player & Remove Player (zero popups!)
+    let addedThisVisit = [];
     let removedThisVisit = [];
     let removeUndoSnapshots = {};
 
@@ -1544,12 +1530,16 @@
             if (isSessionActive) {
                 if (!sessionPlayers.some(x => x.id === id) && !newArrivals.some(x => x.id === id)) {
                     newArrivals.push(newP);
-                    renderNewArrivals();
+                    if (!addedThisVisit.some(x => x.id === id)) {
+                        addedThisVisit.push({ id: newP.id, name: newP.name });
+                    }
                     arrivalLog.push({ beforeInterval: currentIntervalCount + 1, name: newP.name });
-                    saveSessionState();
+                    renderAddPlayerScreen();
+                    try {
+                        renderNewArrivals();
+                        saveSessionState();
+                    } catch (e) {}
                 }
-                addScreenSelectedIds.add(id);
-                renderAddPlayerScreen();
             } else {
                 if (!sessionPlayers.some(x => x.id === id)) {
                     sessionPlayers.push(newP);
@@ -1558,6 +1548,25 @@
                 }
             }
         }
+    }
+
+    function undoAddPlayerToSession(id) {
+        const target = addedThisVisit.find(x => x.id === id);
+        newArrivals = newArrivals.filter(p => p.id !== id);
+        addedThisVisit = addedThisVisit.filter(x => x.id !== id);
+        if (target) {
+            for (let i = arrivalLog.length - 1; i >= 0; i--) {
+                if (arrivalLog[i].name === target.name && arrivalLog[i].beforeInterval === currentIntervalCount + 1) {
+                    arrivalLog.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        renderAddPlayerScreen();
+        try {
+            renderNewArrivals();
+            saveSessionState();
+        } catch (e) {}
     }
 
     function removePlayerFromSession(id) {
@@ -1659,27 +1668,32 @@
 
     function showAddPlayerScreen() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
-        const alreadyIn = new Set(sessionPlayers.map(p => p.id).concat(newArrivals.map(p => p.id)));
-        addScreenInitialAvailableIds = new Set(clubRoster.filter(p => !alreadyIn.has(p.id)).map(p => p.id));
-        addScreenSelectedIds = new Set();
+        addedThisVisit = [];
         renderAddPlayerScreen();
         document.getElementById('screen-add-player').classList.add('active');
     }
 
     function renderAddPlayerScreen() {
-        const container = document.getElementById('add-player-screen-list');
-        if (!container) return;
-        const visible = clubRoster
-            .filter(p => addScreenInitialAvailableIds.has(p.id) || addScreenSelectedIds.has(p.id))
-            .sort(sortPlayersAlphabetical);
-        container.innerHTML = visible.map(p => {
-            const isSelected = addScreenSelectedIds.has(p.id);
-            const checkHtml = isSelected ? '<span class="row-check">&#10003;</span>' : '';
-            const clickAttr = isSelected ? '' : `onclick="addPlayerToSession(${p.id})"`;
-            return `<div class="player-row" style="cursor:${isSelected ? 'default' : 'pointer'}; background:var(--success); color:var(--dark); font-weight:bold; justify-content:center;" ${clickAttr}><span>${p.name}</span>${checkHtml}</div>`;
-        }).join('') || '<p style="text-align:center; color:var(--secondary);"><em>All players checked in</em></p>';
-        const countEl = document.getElementById('add-player-waiting-count');
-        if (countEl) countEl.textContent = newArrivals.length;
+        const availContainer = document.getElementById('add-player-screen-list');
+        const addedContainer = document.getElementById('added-players-list');
+        const addedHeader = document.getElementById('added-players-header');
+        if (!availContainer || !addedContainer) return;
+
+        const alreadyIn = new Set(sessionPlayers.map(p => p.id).concat(newArrivals.map(p => p.id)));
+        const available = clubRoster.filter(p => !alreadyIn.has(p.id)).sort(sortPlayersAlphabetical);
+        availContainer.innerHTML = available.map(p =>
+            `<div class="player-row" style="cursor:pointer; background:var(--success); color:var(--dark); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${p.id})"><span>${p.name}</span></div>`
+        ).join('') || '<p style="text-align:center; color:var(--secondary);"><em>All players checked in</em></p>';
+
+        if (addedHeader) {
+            addedHeader.textContent = `Added: ${addedThisVisit.length} Player${addedThisVisit.length === 1 ? '' : 's'}`;
+        }
+        addedContainer.innerHTML = addedThisVisit.map(p =>
+            `<div class="player-row" style="background:var(--card); border:1px solid #ccc;">
+                <span>${p.name}</span>
+                <button style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:1.1rem;" onclick="undoAddPlayerToSession(${p.id})" title="Undo add">&#10005;</button>
+            </div>`
+        ).join('') || '<p style="text-align:center; color:var(--secondary); font-size:0.85rem;"><em>None added yet</em></p>';
     }
 
     function showRemovePlayerScreen() {
@@ -1812,16 +1826,19 @@
                 <button class="btn btn-primary" style="background-color:#25D366; color:#fff;" onclick="broadcastToWhatsApp()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#000000" style="vertical-align:-3px; margin-right:6px;" aria-hidden="true"><path d="M18 3v18l-8-4H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5l8-4zm2 5.5a4.5 4.5 0 0 1 0 7v-7zM6 17l1.5 4h2.2l-1.5-4H6z"/></svg>Broadcast to WhatsApp</button>
             </div>
 
-            <!-- V3.129 Multi-Select Add Player Screen -->
+            <!-- V3.130 Roll Call-Style Add Player Screen (Upper Available / Lower Added with Undo) -->
             <div id="screen-add-player" class="screen">
                 <div class="card">
                     <h2>Add Player</h2>
-                    <p style="font-size:0.85rem; color:var(--secondary); margin-bottom:10px;">Tap players to add to New Arrivals (Waiting: <strong id="add-player-waiting-count">0</strong>)</p>
-                    <div id="add-player-screen-list" class="player-grid"></div>
+                    <h3 style="margin-top: 5px; color: var(--secondary);">Available Players: Tap to Add</h3>
+                    <div id="add-player-screen-list" style="max-height: 250px; overflow-y: auto; padding: 5px; border: 1px solid #eee;"></div>
+                    <hr>
+                    <h3 id="added-players-header">Added: 0 Players</h3>
+                    <div id="added-players-list"></div>
                 </div>
             </div>
 
-            <!-- V3.129 Roll Call-Style Remove Player Screen (Upper Active / Lower Removed with Undo) -->
+            <!-- V3.130 Roll Call-Style Remove Player Screen (Upper Active / Lower Removed with Undo) -->
             <div id="screen-remove-player" class="screen">
                 <div class="card">
                     <h2>Remove Player</h2>
@@ -1943,7 +1960,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.129</p>
+                    <p class="sub-screen-header">Version 3.130</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
