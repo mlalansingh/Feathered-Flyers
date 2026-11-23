@@ -283,7 +283,7 @@
         }
         .modal-content li:hover { background-color: var(--light); }
 
-        #confirmModal .btn {
+        #confirmModal .btn, #guestNameModal .btn, #guestDeleteModal .btn {
             width: 45%;
             display: inline-block;
             margin: 5px 2%;
@@ -307,7 +307,7 @@
             border: 1px solid #eee;
         }
     
-    /* ── V3.125 Branded Header Logo, Guest Slots & Row Icons ── */
+    /* ── V3.126 Branded Header Logo, Guest Slots & Row Icons ── */
     #header-logo {
         height: 52px;
         width: auto;
@@ -512,11 +512,13 @@
         return [...clubRoster, ...activeGuests];
     }
 
-    // V3.125 visit-scoped state for Add Player & Remove Player screens
+    // V3.126 visit-scoped state for Roll Call, Add Player & Remove Player (with Undo)
+    let rollCallAddedGuestIds = new Set();
     let addScreenInitialAvailableIds = new Set();
     let addScreenSelectedIds = new Set();
     let removeScreenSnapshot = [];
     let removeScreenRemovedIds = new Set();
+    let removeUndoSnapshots = {};
     let pendingGuestModal = null;
     let pendingDeleteGuestId = null;
 
@@ -554,8 +556,10 @@
 
     // --- NAVIGATION ---
     function showRollCallScreen() {
+        rollCallAddedGuestIds = new Set();
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         document.getElementById('screen-roll-call').classList.add('active');
+        renderAvailableRollCallPlayers();
         lastScreen = 'screen-roll-call'; 
         renderSessionRoster();
         renderAvailableRollCallPlayers();
@@ -1423,6 +1427,7 @@
         else if (action === 'endSession') msg = "End Session? This will reset all data.";
         else if (action === 'swap') msg = "Confirm player swap?";
         else if (action === 'removePlayer') msg = `Remove ${payload.name} from the session?`;
+        else if (action === 'undoRemovePlayer') msg = `Undo removal of ${payload.name}?`;
         else if (action === 'resumeSession') msg = "This will restore your last session exactly as it was — courts, bench, and player assignments. The session log and sit counts will continue from where you left off.";
 
         document.getElementById('confirmMessage').innerText = msg;
@@ -1467,6 +1472,8 @@
                 // Confirmed removal — clear any pending swap state then remove
                 swapCandidate = null;
                 removePlayerFromSession(payload.id);
+            } else if (action === 'undoRemovePlayer') {
+                undoRemovePlayerFromSession(payload.id);
             } else if (action === 'resumeSession') { resumeSession(); }
         };
 
@@ -1601,7 +1608,6 @@
         const clean = (input.value || '').trim();
         if (!clean) { closeGuestNameModal(); return; }
 
-        // Always write to the clicked slot if empty, otherwise the first available empty slot (never overwrite a filled guest!)
         let targetSlot = guestSlots.find(g => g.id === pendingGuestModal.slotId && (!g.name || g.name.trim() === ''));
         if (!targetSlot) {
             targetSlot = guestSlots.find(g => !g.name || g.name.trim() === '');
@@ -1617,9 +1623,13 @@
 
         if (mode === 'addScreen') {
             addScreenInitialAvailableIds.add(targetSlot.id);
+            addScreenSelectedIds.add(targetSlot.id);
             addPlayerToSession(targetSlot.id, true);
+            renderAddPlayerScreen();
         } else {
+            rollCallAddedGuestIds.add(targetSlot.id);
             addPlayerToSession(targetSlot.id, false);
+            renderAvailableRollCallPlayers();
         }
     }
 
@@ -1647,6 +1657,7 @@
         if (!slot) return;
         slot.name = '';
         saveGuestSlots();
+        rollCallAddedGuestIds.delete(slotId);
         addScreenInitialAvailableIds.delete(slotId);
         addScreenSelectedIds.delete(slotId);
         renderAvailableRollCallPlayers();
@@ -1659,17 +1670,25 @@
         const container = document.getElementById('roll-call-list-container');
         if (!container) return;
         const addedIds = new Set(sessionPlayers.map(p => p.id));
-        const available = getAllRosterPlayers().filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
-        const playerRows = available.map(p => {
-            const isGuest = p.id >= 101;
-            const delBtn = isGuest ? `<button class="guest-del-btn" onclick="openDeleteGuestModal(${p.id}, event)" title="Delete guest">&times;</button>` : '';
-            return `<div class="player-row" style="cursor:pointer; background:var(--success); color:var(--dark); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${p.id}, false)"><span>${p.name}</span>${delBtn}</div>`;
+        const availableClub = clubRoster.filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
+        const clubRows = availableClub.map(p =>
+            `<div class="player-row" style="cursor:pointer; background:var(--success); color:var(--dark); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${p.id}, false)"><span>${p.name}</span></div>`
+        ).join('');
+
+        const guestRows = guestSlots.map(g => {
+            if (!g.name || g.name.trim() === '') {
+                return `<div class="player-row guest-slot-empty" onclick="openGuestNameModal(${g.id}, 'rollCall')"><em>Add Guest...</em></div>`;
+            }
+            if (rollCallAddedGuestIds.has(g.id)) {
+                return `<div class="player-row" style="cursor:default; background:var(--success); color:var(--dark); font-weight:bold; justify-content:center;"><span>${g.name}</span><span class="row-check">&#10003;</span></div>`;
+            }
+            if (!addedIds.has(g.id)) {
+                return `<div class="player-row" style="cursor:pointer; background:var(--success); color:var(--dark); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${g.id}, false)"><span>${g.name}</span><button class="guest-del-btn" onclick="openDeleteGuestModal(${g.id}, event)" title="Delete guest">&times;</button></div>`;
+            }
+            return '';
         }).join('');
-        const emptyGuestRows = guestSlots
-            .filter(g => !g.name || g.name.trim() === '')
-            .map(g => `<div class="player-row guest-slot-empty" onclick="openGuestNameModal(${g.id}, 'rollCall')"><em>Add Guest...</em></div>`)
-            .join('');
-        container.innerHTML = playerRows + emptyGuestRows;
+
+        container.innerHTML = clubRows + guestRows;
     }
 
     function addPlayerToSession(id, fromAddScreen = false) {
@@ -1698,21 +1717,76 @@
 
     function removePlayerFromSession(id) {
         swapCandidate = null;
-        const wasPlaying = sessionPlayers.some(p => p.id === id);
+        // V3.126: Capture exact state snapshot before removal so Undo restores sit count, court slot, bench & log 100% intact
+        const spIdx = sessionPlayers.findIndex(p => p.id === id);
+        const naIdx = newArrivals.findIndex(p => p.id === id);
+        const cpIdx = currentPlaying.findIndex(p => p.id === id);
+        const csIdx = currentSitting.findIndex(p => p.id === id);
+        let courtPos = null;
+        for (let ci = 0; ci < courtGroups.length; ci++) {
+            const si = courtGroups[ci].findIndex(p => p && p.id === id);
+            if (si !== -1) { courtPos = { ci, si }; break; }
+        }
+        const playerObj = spIdx !== -1 ? { ...sessionPlayers[spIdx] } : (naIdx !== -1 ? { ...newArrivals[naIdx] } : null);
+        const depLogLenBefore = departureLog.length;
+
+        const wasPlaying = spIdx !== -1;
         if (wasPlaying) {
-            const leaving = sessionPlayers.find(p => p.id === id);
+            const leaving = sessionPlayers[spIdx];
             if (leaving) departureLog.push({ beforeInterval: currentIntervalCount + 1, name: leaving.name });
         }
+
+        if (playerObj) {
+            removeUndoSnapshots[id] = {
+                playerObj, spIdx, naIdx, cpIdx, csIdx, courtPos,
+                addedDepLog: departureLog.length > depLogLenBefore
+            };
+        }
+
         sessionPlayers = sessionPlayers.filter(p => p.id !== id);
         newArrivals    = newArrivals.filter(p => p.id !== id);
         currentPlaying = currentPlaying.filter(p => p.id !== id);
         currentSitting = currentSitting.filter(p => p.id !== id);
-        // Replace removed player with null sentinel — preserves exact slot position so Open appears where player was
         courtGroups = courtGroups.map(court => court.map(p => (p && p.id === id) ? null : p));
+        removeScreenRemovedIds.add(id);
         renderCourts_fromGroups();
         renderBench(currentSitting);
-        removeScreenRemovedIds.add(id); renderSessionRoster(); renderAvailableRollCallPlayers(); renderNewArrivals(); renderRemovePlayerScreen();
-        // *** PROTECTED — Add/Remove/Resume: persist removal immediately so Resume reflects correct state ***
+        renderSessionRoster(); renderAvailableRollCallPlayers(); renderNewArrivals(); renderRemovePlayerScreen();
+        saveSessionState();
+    }
+
+    function undoRemovePlayerFromSession(id) {
+        const snap = removeUndoSnapshots[id];
+        if (!snap) return;
+        const p = { ...snap.playerObj };
+        if (snap.spIdx !== -1 && !sessionPlayers.some(x => x.id === id)) {
+            sessionPlayers.splice(Math.min(snap.spIdx, sessionPlayers.length), 0, p);
+        }
+        if (snap.naIdx !== -1 && !newArrivals.some(x => x.id === id)) {
+            newArrivals.splice(Math.min(snap.naIdx, newArrivals.length), 0, p);
+        }
+        if (snap.cpIdx !== -1 && !currentPlaying.some(x => x.id === id)) {
+            currentPlaying.splice(Math.min(snap.cpIdx, currentPlaying.length), 0, p);
+        }
+        if (snap.csIdx !== -1 && !currentSitting.some(x => x.id === id)) {
+            currentSitting.splice(Math.min(snap.csIdx, currentSitting.length), 0, p);
+        }
+        if (snap.courtPos && courtGroups[snap.courtPos.ci]) {
+            courtGroups[snap.courtPos.ci][snap.courtPos.si] = p;
+        }
+        if (snap.addedDepLog) {
+            for (let i = departureLog.length - 1; i >= 0; i--) {
+                if (departureLog[i].name === p.name && departureLog[i].beforeInterval === currentIntervalCount + 1) {
+                    departureLog.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        delete removeUndoSnapshots[id];
+        removeScreenRemovedIds.delete(id);
+        renderCourts_fromGroups();
+        renderBench(currentSitting);
+        renderSessionRoster(); renderAvailableRollCallPlayers(); renderNewArrivals(); renderRemovePlayerScreen();
         saveSessionState();
     }
 
@@ -1739,7 +1813,6 @@
     function renderAddPlayerScreen() {
         const container = document.getElementById('add-player-screen-list');
         if (!container) return;
-        const allRoster = getAllRosterPlayers();
         const visibleClub = clubRoster
             .filter(p => addScreenInitialAvailableIds.has(p.id) || addScreenSelectedIds.has(p.id))
             .sort(sortPlayersAlphabetical);
@@ -1776,6 +1849,7 @@
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         removeScreenSnapshot = sessionPlayers.concat(newArrivals).sort(sortPlayersAlphabetical).map(p => ({ id: p.id, name: p.name }));
         removeScreenRemovedIds = new Set();
+        removeUndoSnapshots = {};
         renderRemovePlayerScreen();
         document.getElementById('screen-remove-player').classList.add('active');
     }
@@ -1787,13 +1861,19 @@
             const isRemoved = removeScreenRemovedIds.has(p.id);
             const checkHtml = isRemoved ? '<span class="row-check">&#10003;</span>' : '';
             const safeName = p.name.replace(/'/g, "\\'");
-            const clickAttr = isRemoved ? '' : `onclick="pendingRemove(${p.id}, '${safeName}')"`;
-            return `<div class="player-row remove-player-row" style="cursor:${isRemoved ? 'default' : 'pointer'};" ${clickAttr}><span>${p.name}</span>${checkHtml}</div>`;
+            const clickAttr = isRemoved
+                ? `onclick="pendingUndoRemove(${p.id}, '${safeName}')"`
+                : `onclick="pendingRemove(${p.id}, '${safeName}')"`;
+            return `<div class="player-row remove-player-row" ${clickAttr}><span>${p.name}</span>${checkHtml}</div>`;
         }).join('') || '<p style="text-align:center; color:var(--secondary);"><em>No players to remove</em></p>';
     }
 
     function pendingRemove(id, name) {
         showConfirmation('removePlayer', { id, name });
+    }
+
+    function pendingUndoRemove(id, name) {
+        showConfirmation('undoRemovePlayer', { id, name });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1896,7 +1976,7 @@
                 <button class="btn btn-primary" style="background-color:#25D366; color:#fff;" onclick="broadcastToWhatsApp()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#000000" style="vertical-align:-3px; margin-right:6px;" aria-hidden="true"><path d="M18 3v18l-8-4H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5l8-4zm2 5.5a4.5 4.5 0 0 1 0 7v-7zM6 17l1.5 4h2.2l-1.5-4H6z"/></svg>Broadcast to WhatsApp</button>
             </div>
 
-            <!-- V3.125 Multi-Select Add Player Screen -->
+            <!-- V3.126 Multi-Select Add Player Screen -->
             <div id="screen-add-player" class="screen">
                 <div class="card">
                     <h2>Add Player</h2>
@@ -1905,11 +1985,11 @@
                 </div>
             </div>
 
-            <!-- V3.125 Multi-Select Remove Player Screen -->
+            <!-- V3.126 Multi-Select Remove Player Screen -->
             <div id="screen-remove-player" class="screen">
                 <div class="card">
                     <h2>Remove Player</h2>
-                    <p style="font-size:0.85rem; color:var(--secondary); margin-bottom:10px;">Tap players to remove from the current session</p>
+                    <p style="font-size:0.85rem; color:var(--secondary); margin-bottom:10px;">Tap a player to remove; tap again to undo</p>
                     <div id="remove-player-screen-list" class="player-grid"></div>
                 </div>
             </div>
@@ -2024,7 +2104,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.125</p>
+                    <p class="sub-screen-header">Version 3.126</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
@@ -2038,26 +2118,8 @@
     </div> 
 
     <div id="addPlayerModal" class="modal"><div class="modal-content"><h2>Select Player to Add</h2><ul id="add-player-list"></ul><button class="btn btn-danger" onclick="document.getElementById('addPlayerModal').style.display='none'; toggleBackgroundScroll(false);">Cancel</button></div></div>
-    <div id="guestNameModal" class="modal">
-        <div class="modal-content">
-            <h2>Add Guest</h2>
-            <input id="guest-name-input" type="text" placeholder="Enter guest name" style="width:100%; padding:10px; font-size:1rem; border:1px solid #ccc; border-radius:6px; margin-bottom:14px; box-sizing:border-box;" onkeydown="if(event.key==='Enter') submitGuestNameModal();">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <button class="btn btn-secondary" onclick="closeGuestNameModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="submitGuestNameModal()">OK</button>
-            </div>
-        </div>
-    </div>
-    <div id="guestDeleteModal" class="modal">
-        <div class="modal-content">
-            <h2>Delete Guest</h2>
-            <p id="guest-delete-msg" style="margin-bottom:16px;"></p>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <button class="btn btn-secondary" onclick="closeDeleteGuestModal()">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmDeleteGuestModal()">Delete</button>
-            </div>
-        </div>
-    </div>
+    <div id="guestNameModal" class="modal"><div class="modal-content"><p>Enter guest name:</p><input id="guest-name-input" type="text" placeholder="Guest name" style="width:100%; padding:10px; font-size:1rem; border:1px solid #025F33; border-radius:6px; margin-bottom:14px; box-sizing:border-box;" onkeydown="if(event.key==='Enter') submitGuestNameModal();"><button class="btn btn-success" onclick="submitGuestNameModal()">OK</button><button class="btn btn-danger" onclick="closeGuestNameModal()">Cancel</button></div></div>
+    <div id="guestDeleteModal" class="modal"><div class="modal-content"><p id="guest-delete-msg"></p><button class="btn btn-success" onclick="confirmDeleteGuestModal()">Yes</button><button class="btn btn-danger" onclick="closeDeleteGuestModal()">No</button></div></div>
     <div id="removePlayerModal" class="modal"><div class="modal-content"><h2>Select Player to Remove</h2><ul id="remove-player-list"></ul><button class="btn btn-danger" onclick="document.getElementById('removePlayerModal').style.display='none'; toggleBackgroundScroll(false);">Cancel</button></div></div>
     <div id="confirmModal" class="modal"><div class="modal-content"><p id="confirmMessage"></p><button class="btn btn-success" id="confirmYes">Yes</button><button class="btn btn-danger" id="confirmNo">No</button></div></div>
     <div id="sessionInfoModal" class="modal"><div class="modal-content" style="text-align:left; max-height:80vh; overflow-y:auto;"><h2>📊 Session Info</h2><p>Interval: <strong id="interval-count-display"></strong></p><hr><h3>Sit Counts</h3><div id="player-stats-list"></div><hr><h3>Log</h3><div id="interval-history-log"></div><button class="btn btn-primary" onclick="document.getElementById('sessionInfoModal').style.display='none'; toggleBackgroundScroll(false);">Close</button></div></div>
