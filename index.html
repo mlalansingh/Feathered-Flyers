@@ -283,7 +283,7 @@
         }
         .modal-content li:hover { background-color: var(--light); }
 
-        #confirmModal .btn, #guestNameModal .btn, #guestDeleteModal .btn {
+        #confirmModal .btn {
             width: 45%;
             display: inline-block;
             margin: 5px 2%;
@@ -307,7 +307,7 @@
             border: 1px solid #eee;
         }
     
-    /* ── V3.127 Branded Header Logo, Guest Slots & Row Icons ── */
+    /* ── V3.128 Branded Header Logo & Multi-Select Row Styles ─ */
     #header-logo {
         height: 52px;
         width: auto;
@@ -315,6 +315,9 @@
         display: block;
         user-select: none;
         -webkit-user-drag: none;
+    }
+    .btn, .player-row {
+        touch-action: manipulation;
     }
     .player-row {
         position: relative;
@@ -328,32 +331,6 @@
         font-weight: 800;
         color: var(--dark);
         pointer-events: none;
-    }
-    .guest-slot-empty {
-        cursor: pointer;
-        background: #eef6f1;
-        border: 1px dashed #025F33;
-        color: #025F33;
-        font-style: italic;
-        justify-content: center;
-    }
-    .guest-del-btn {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: rgba(0, 0, 0, 0.16);
-        border: none;
-        color: var(--dark);
-        border-radius: 50%;
-        width: 26px;
-        height: 26px;
-        font-size: 1.05rem;
-        line-height: 1;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
     }
     .remove-player-row {
         cursor: pointer;
@@ -485,48 +462,17 @@
         { id: 5, name: "OiWun" }, { id: 6, name: "Paul" }, { id: 7, name: "Peter" }, { id: 8, name: "Pradeep" },
         { id: 9, name: "Prem" }, { id: 10, name: "Roger" }, { id: 11, name: "Sherri" }, { id: 12, name: "Siva" },
         { id: 13, name: "Steve V." }, { id: 14, name: "Sudesh" }, { id: 15, name: "Sujay" }, { id: 16, name: "Tharma" },
-        { id: 17, name: "Tharsini" }, { id: 18, name: "Tzu" }, { id: 19, name: "Vincent" }
+        { id: 17, name: "Tharsini" }, { id: 18, name: "Tzu" }, { id: 19, name: "Vincent" },
+        { id: 21, name: "GUEST 1" }, { id: 22, name: "GUEST 2" },
+        { id: 23, name: "GUEST 3" }, { id: 24, name: "GUEST 4" }
     ];
 
-    function loadGuestSlots() {
-        try {
-            const raw = localStorage.getItem('mff_guest_slots');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length === 4) return parsed;
-            }
-        } catch (e) {}
-        return [
-            { id: 101, name: '' },
-            { id: 102, name: '' },
-            { id: 103, name: '' },
-            { id: 104, name: '' }
-        ];
-    }
-    let guestSlots = loadGuestSlots();
-    function saveGuestSlots() {
-        try { localStorage.setItem('mff_guest_slots', JSON.stringify(guestSlots)); } catch (e) {}
-    }
-    function getAllRosterPlayers() {
-        const activeGuests = guestSlots.filter(g => g.name && g.name.trim() !== '');
-        return [...clubRoster, ...activeGuests];
-    }
-    function updateClubRosterDisplay() {
-        const display = document.getElementById('club-roster-display');
-        if (display) {
-            display.textContent = getAllRosterPlayers().sort(sortPlayersAlphabetical).map(p => p.name).join(', ');
-        }
-    }
-
-    // V3.127 visit-scoped state for Roll Call, Add Player & Remove Player (with Undo)
-    let rollCallAddedGuestIds = new Set();
+    // V3.128 visit-scoped state for Add Player & Remove Player (with Undo)
     let addScreenInitialAvailableIds = new Set();
     let addScreenSelectedIds = new Set();
     let removeScreenSnapshot = [];
     let removeScreenRemovedIds = new Set();
     let removeUndoSnapshots = {};
-    let pendingGuestModal = null;
-    let pendingDeleteGuestId = null;
 
     let sessionPlayers = []; 
     let newArrivals = [];    
@@ -562,10 +508,8 @@
 
     // --- NAVIGATION ---
     function showRollCallScreen() {
-        rollCallAddedGuestIds = new Set();
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         document.getElementById('screen-roll-call').classList.add('active');
-        renderAvailableRollCallPlayers();
         lastScreen = 'screen-roll-call'; 
         renderSessionRoster();
         renderAvailableRollCallPlayers();
@@ -1454,7 +1398,6 @@
 
         document.getElementById('confirmYes').onclick = () => {
             document.getElementById('confirmModal').style.display = 'none';
-            toggleBackgroundScroll(false);
             if (action === 'nextInterval') {
                 generateAssignments();
                 saveSessionState();
@@ -1478,15 +1421,14 @@
             } else if (action === 'removePlayer') {
                 // Confirmed removal — clear any pending swap state then remove
                 swapCandidate = null;
-                removePlayerFromSession(payload.id);
+                setTimeout(() => removePlayerFromSession(payload.id), 0);
             } else if (action === 'undoRemovePlayer') {
-                undoRemovePlayerFromSession(payload.id);
+                setTimeout(() => undoRemovePlayerFromSession(payload.id), 0);
             } else if (action === 'resumeSession') { resumeSession(); }
         };
 
         document.getElementById('confirmNo').onclick = () => {
             document.getElementById('confirmModal').style.display = 'none';
-            toggleBackgroundScroll(false);
             if (action === 'swap') {
                 // Clear highlights on both candidates when swap is cancelled
                 if (payload.cand1) {
@@ -1588,122 +1530,21 @@
 
     function renderClubRosterManagement() {
         const list = document.getElementById('club-roster-management-list');
-        list.innerHTML = getAllRosterPlayers().sort(sortPlayersAlphabetical).map(p => {
-            const isGuest = p.id >= 101;
-            const delBtn = isGuest ? `<button class="guest-del-btn" onclick="openDeleteGuestModal(${p.id}, event)" title="Delete guest">&times;</button>` : '';
-            return `<div class="player-row" style="background:var(--card); border:1px solid #ccc; justify-content:start;"><span>${p.name}${isGuest ? ' <em style="font-size:0.8rem; color:var(--secondary);">(Guest)</em>' : ''}</span>${delBtn}</div>`;
-        }).join('');
-    }
-
-    function openGuestNameModal(slotId, mode) {
-        pendingGuestModal = { slotId, mode };
-        const input = document.getElementById('guest-name-input');
-        input.value = '';
-        document.getElementById('guestNameModal').style.display = 'flex';
-        toggleBackgroundScroll(true);
-        setTimeout(() => input.focus(), 50);
-    }
-
-    function closeGuestNameModal() {
-        document.getElementById('guestNameModal').style.display = 'none';
-        toggleBackgroundScroll(false);
-        pendingGuestModal = null;
-    }
-
-    function submitGuestNameModal() {
-        if (!pendingGuestModal) return;
-        const input = document.getElementById('guest-name-input');
-        const clean = (input.value || '').trim();
-        if (!clean) { closeGuestNameModal(); return; }
-
-        let targetSlot = guestSlots.find(g => g.id === pendingGuestModal.slotId && (!g.name || g.name.trim() === ''));
-        if (!targetSlot) {
-            targetSlot = guestSlots.find(g => !g.name || g.name.trim() === '');
-        }
-        const mode = pendingGuestModal.mode;
-        closeGuestNameModal();
-        if (!targetSlot) return;
-
-        targetSlot.name = clean;
-        saveGuestSlots();
-        renderClubRosterManagement();
-        updateClubRosterDisplay();
-
-        if (mode === 'addScreen') {
-            addScreenInitialAvailableIds.add(targetSlot.id);
-            addScreenSelectedIds.add(targetSlot.id);
-            addPlayerToSession(targetSlot.id, true);
-            renderAddPlayerScreen();
-        } else {
-            rollCallAddedGuestIds.add(targetSlot.id);
-            addPlayerToSession(targetSlot.id, false);
-            renderAvailableRollCallPlayers();
-        }
-    }
-
-    function openDeleteGuestModal(slotId, event) {
-        if (event) event.stopPropagation();
-        const slot = guestSlots.find(g => g.id === slotId);
-        if (!slot || !slot.name) return;
-        pendingDeleteGuestId = slotId;
-        document.getElementById('guest-delete-msg').textContent = `Delete saved guest "${slot.name}"?`;
-        document.getElementById('guestDeleteModal').style.display = 'flex';
-        toggleBackgroundScroll(true);
-    }
-
-    function closeDeleteGuestModal() {
-        document.getElementById('guestDeleteModal').style.display = 'none';
-        toggleBackgroundScroll(false);
-        pendingDeleteGuestId = null;
-    }
-
-    function confirmDeleteGuestModal() {
-        const slotId = pendingDeleteGuestId;
-        closeDeleteGuestModal();
-        if (slotId == null) return;
-        const slot = guestSlots.find(g => g.id === slotId);
-        if (!slot) return;
-        slot.name = '';
-        saveGuestSlots();
-        rollCallAddedGuestIds.delete(slotId);
-        addScreenInitialAvailableIds.delete(slotId);
-        addScreenSelectedIds.delete(slotId);
-        renderAvailableRollCallPlayers();
-        renderAddPlayerScreen();
-        renderClubRosterManagement();
-        updateClubRosterDisplay();
+        list.innerHTML = [...clubRoster].sort(sortPlayersAlphabetical).map(p => `<div class="player-row" style="background:var(--card); border:1px solid #ccc; justify-content:start;"><span>${p.name}</span></div>`).join('');
     }
 
     function renderAvailableRollCallPlayers() {
         const container = document.getElementById('roll-call-list-container');
-        if (!container) return;
         const addedIds = new Set(sessionPlayers.map(p => p.id));
-        const availableClub = clubRoster.filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
-        const clubRows = availableClub.map(p =>
-            `<div class="player-row" style="cursor:pointer; background:var(--success); color:var(--dark); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${p.id}, false)"><span>${p.name}</span></div>`
-        ).join('');
-
-        const guestRows = guestSlots.map(g => {
-            if (!g.name || g.name.trim() === '') {
-                return `<div class="player-row guest-slot-empty" onclick="openGuestNameModal(${g.id}, 'rollCall')"><em>Add Guest...</em></div>`;
-            }
-            if (rollCallAddedGuestIds.has(g.id)) {
-                return `<div class="player-row" style="cursor:default; background:var(--success); color:var(--dark); font-weight:bold; justify-content:center;"><span>${g.name}</span><span class="row-check">&#10003;</span></div>`;
-            }
-            if (!addedIds.has(g.id)) {
-                return `<div class="player-row" style="cursor:pointer; background:var(--success); color:var(--dark); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${g.id}, false)"><span>${g.name}</span><button class="guest-del-btn" onclick="openDeleteGuestModal(${g.id}, event)" title="Delete guest">&times;</button></div>`;
-            }
-            return '';
-        }).join('');
-
-        container.innerHTML = clubRows + guestRows;
+        const available = clubRoster.filter(p => !addedIds.has(p.id)).sort(sortPlayersAlphabetical);
+        container.innerHTML = available.map(p => `<div class="player-row" style="cursor:pointer; background:var(--success); font-weight:bold; justify-content:center;" onclick="addPlayerToSession(${p.id})">${p.name}</div>`).join('');
     }
 
-    function addPlayerToSession(id, fromAddScreen = false) {
-        const p = getAllRosterPlayers().find(x => x.id === id);
+    function addPlayerToSession(id) {
+        const p = clubRoster.find(x => x.id === id);
         if (p) {
             const newP = { ...p, sits: 0, checkInIndex: ++checkInCounter };
-            const isSessionActive = fromAddScreen || document.getElementById('screen-session').classList.contains('active') || document.getElementById('screen-add-player').classList.contains('active');
+            const isSessionActive = document.getElementById('screen-session').classList.contains('active') || document.getElementById('screen-add-player').classList.contains('active');
             if (isSessionActive) {
                 if (!sessionPlayers.some(x => x.id === id) && !newArrivals.some(x => x.id === id)) {
                     newArrivals.push(newP);
@@ -1821,7 +1662,7 @@
     function showAddPlayerScreen() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         const alreadyIn = new Set(sessionPlayers.map(p => p.id).concat(newArrivals.map(p => p.id)));
-        addScreenInitialAvailableIds = new Set(getAllRosterPlayers().filter(p => !alreadyIn.has(p.id)).map(p => p.id));
+        addScreenInitialAvailableIds = new Set(clubRoster.filter(p => !alreadyIn.has(p.id)).map(p => p.id));
         addScreenSelectedIds = new Set();
         renderAddPlayerScreen();
         document.getElementById('screen-add-player').classList.add('active');
@@ -1830,34 +1671,15 @@
     function renderAddPlayerScreen() {
         const container = document.getElementById('add-player-screen-list');
         if (!container) return;
-        const visibleClub = clubRoster
+        const visible = clubRoster
             .filter(p => addScreenInitialAvailableIds.has(p.id) || addScreenSelectedIds.has(p.id))
             .sort(sortPlayersAlphabetical);
-        const visibleGuests = guestSlots.filter(g => {
-            if (!g.name || g.name.trim() === '') return true;
-            return addScreenInitialAvailableIds.has(g.id) || addScreenSelectedIds.has(g.id);
-        });
-
-        const clubRows = visibleClub.map(p => {
+        container.innerHTML = visible.map(p => {
             const isSelected = addScreenSelectedIds.has(p.id);
             const checkHtml = isSelected ? '<span class="row-check">&#10003;</span>' : '';
-            const clickAttr = isSelected ? '' : `onclick="addPlayerToSession(${p.id}, true)"`;
+            const clickAttr = isSelected ? '' : `onclick="addPlayerToSession(${p.id})"`;
             return `<div class="player-row" style="cursor:${isSelected ? 'default' : 'pointer'}; background:var(--success); color:var(--dark); font-weight:bold; justify-content:center;" ${clickAttr}><span>${p.name}</span>${checkHtml}</div>`;
-        }).join('');
-
-        const guestRows = visibleGuests.map(g => {
-            if (!g.name || g.name.trim() === '') {
-                return `<div class="player-row guest-slot-empty" onclick="openGuestNameModal(${g.id}, 'addScreen')"><em>Add Guest...</em></div>`;
-            }
-            const isSelected = addScreenSelectedIds.has(g.id);
-            const rightIcon = isSelected
-                ? '<span class="row-check">&#10003;</span>'
-                : `<button class="guest-del-btn" onclick="openDeleteGuestModal(${g.id}, event)" title="Delete guest">&times;</button>`;
-            const clickAttr = isSelected ? '' : `onclick="addPlayerToSession(${g.id}, true)"`;
-            return `<div class="player-row" style="cursor:${isSelected ? 'default' : 'pointer'}; background:var(--success); color:var(--dark); font-weight:bold; justify-content:center;" ${clickAttr}><span>${g.name}</span>${rightIcon}</div>`;
-        }).join('');
-
-        container.innerHTML = (clubRows + guestRows) || '<p style="text-align:center; color:var(--secondary);"><em>All players checked in</em></p>';
+        }).join('') || '<p style="text-align:center; color:var(--secondary);"><em>All players checked in</em></p>';
         const countEl = document.getElementById('add-player-waiting-count');
         if (countEl) countEl.textContent = newArrivals.length;
     }
@@ -1902,7 +1724,7 @@
         if (savedDep) { departureLog = JSON.parse(savedDep); }
         
         const display = document.getElementById('club-roster-display');
-        updateClubRosterDisplay();
+        display.textContent = [...clubRoster].sort(sortPlayersAlphabetical).map(p => p.name).join(', ');
         renderSessionRoster();
         renderLastSessionHistory();
     });
@@ -1993,7 +1815,7 @@
                 <button class="btn btn-primary" style="background-color:#25D366; color:#fff;" onclick="broadcastToWhatsApp()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#000000" style="vertical-align:-3px; margin-right:6px;" aria-hidden="true"><path d="M18 3v18l-8-4H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5l8-4zm2 5.5a4.5 4.5 0 0 1 0 7v-7zM6 17l1.5 4h2.2l-1.5-4H6z"/></svg>Broadcast to WhatsApp</button>
             </div>
 
-            <!-- V3.127 Multi-Select Add Player Screen -->
+            <!-- V3.128 Multi-Select Add Player Screen -->
             <div id="screen-add-player" class="screen">
                 <div class="card">
                     <h2>Add Player</h2>
@@ -2002,7 +1824,7 @@
                 </div>
             </div>
 
-            <!-- V3.127 Multi-Select Remove Player Screen -->
+            <!-- V3.128 Multi-Select Remove Player Screen -->
             <div id="screen-remove-player" class="screen">
                 <div class="card">
                     <h2>Remove Player</h2>
@@ -2121,7 +1943,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.127</p>
+                    <p class="sub-screen-header">Version 3.128</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
@@ -2135,8 +1957,6 @@
     </div> 
 
     <div id="addPlayerModal" class="modal"><div class="modal-content"><h2>Select Player to Add</h2><ul id="add-player-list"></ul><button class="btn btn-danger" onclick="document.getElementById('addPlayerModal').style.display='none'; toggleBackgroundScroll(false);">Cancel</button></div></div>
-    <div id="guestNameModal" class="modal"><div class="modal-content"><p>Enter guest name:</p><input id="guest-name-input" type="text" placeholder="Guest name" style="width:100%; padding:10px; font-size:1rem; border:1px solid #025F33; border-radius:6px; margin-bottom:14px; box-sizing:border-box;" onkeydown="if(event.key==='Enter') submitGuestNameModal();"><button class="btn btn-success" onclick="submitGuestNameModal()">OK</button><button class="btn btn-danger" onclick="closeGuestNameModal()">Cancel</button></div></div>
-    <div id="guestDeleteModal" class="modal"><div class="modal-content"><p id="guest-delete-msg"></p><button class="btn btn-success" onclick="confirmDeleteGuestModal()">Yes</button><button class="btn btn-danger" onclick="closeDeleteGuestModal()">No</button></div></div>
     <div id="removePlayerModal" class="modal"><div class="modal-content"><h2>Select Player to Remove</h2><ul id="remove-player-list"></ul><button class="btn btn-danger" onclick="document.getElementById('removePlayerModal').style.display='none'; toggleBackgroundScroll(false);">Cancel</button></div></div>
     <div id="confirmModal" class="modal"><div class="modal-content"><p id="confirmMessage"></p><button class="btn btn-success" id="confirmYes">Yes</button><button class="btn btn-danger" id="confirmNo">No</button></div></div>
     <div id="sessionInfoModal" class="modal"><div class="modal-content" style="text-align:left; max-height:80vh; overflow-y:auto;"><h2>📊 Session Info</h2><p>Interval: <strong id="interval-count-display"></strong></p><hr><h3>Sit Counts</h3><div id="player-stats-list"></div><hr><h3>Log</h3><div id="interval-history-log"></div><button class="btn btn-primary" onclick="document.getElementById('sessionInfoModal').style.display='none'; toggleBackgroundScroll(false);">Close</button></div></div>
