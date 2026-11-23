@@ -307,7 +307,7 @@
             border: 1px solid #eee;
         }
     
-    /* ── V3.128 Branded Header Logo & Multi-Select Row Styles ─ */
+    /* ── V3.129 Branded Header Logo & Multi-Select Row Styles ─ */
     #header-logo {
         height: 52px;
         width: auto;
@@ -467,11 +467,10 @@
         { id: 23, name: "GUEST 3" }, { id: 24, name: "GUEST 4" }
     ];
 
-    // V3.128 visit-scoped state for Add Player & Remove Player (with Undo)
+    // V3.129 visit-scoped state for Add Player & Roll Call-style Remove Player (zero popups!)
     let addScreenInitialAvailableIds = new Set();
     let addScreenSelectedIds = new Set();
-    let removeScreenSnapshot = [];
-    let removeScreenRemovedIds = new Set();
+    let removedThisVisit = [];
     let removeUndoSnapshots = {};
 
     let sessionPlayers = []; 
@@ -1377,7 +1376,6 @@
         else if (action === 'endSession') msg = "End Session? This will reset all data.";
         else if (action === 'swap') msg = "Confirm player swap?";
         else if (action === 'removePlayer') msg = `Remove ${payload.name} from the session?`;
-        else if (action === 'undoRemovePlayer') msg = `Undo removal of ${payload.name}?`;
         else if (action === 'resumeSession') msg = "This will restore your last session exactly as it was — courts, bench, and player assignments. The session log and sit counts will continue from where you left off.";
 
         document.getElementById('confirmMessage').innerText = msg;
@@ -1421,9 +1419,7 @@
             } else if (action === 'removePlayer') {
                 // Confirmed removal — clear any pending swap state then remove
                 swapCandidate = null;
-                setTimeout(() => removePlayerFromSession(payload.id), 0);
-            } else if (action === 'undoRemovePlayer') {
-                setTimeout(() => undoRemovePlayerFromSession(payload.id), 0);
+                removePlayerFromSession(payload.id);
             } else if (action === 'resumeSession') { resumeSession(); }
         };
 
@@ -1589,6 +1585,9 @@
                 playerObj, spIdx, naIdx, cpIdx, csIdx, courtPos,
                 addedDepLog: departureLog.length > depLogLenBefore
             };
+            if (!removedThisVisit.some(x => x.id === id)) {
+                removedThisVisit.push({ id: playerObj.id, name: playerObj.name });
+            }
         }
 
         sessionPlayers = sessionPlayers.filter(p => p.id !== id);
@@ -1596,7 +1595,6 @@
         currentPlaying = currentPlaying.filter(p => p.id !== id);
         currentSitting = currentSitting.filter(p => p.id !== id);
         courtGroups = courtGroups.map(court => court.map(p => (p && p.id === id) ? null : p));
-        removeScreenRemovedIds.add(id);
         renderRemovePlayerScreen();
         try {
             renderCourts_fromGroups();
@@ -1636,7 +1634,7 @@
             }
         }
         delete removeUndoSnapshots[id];
-        removeScreenRemovedIds.delete(id);
+        removedThisVisit = removedThisVisit.filter(x => x.id !== id);
         renderRemovePlayerScreen();
         try {
             renderCourts_fromGroups();
@@ -1686,33 +1684,32 @@
 
     function showRemovePlayerScreen() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
-        removeScreenSnapshot = sessionPlayers.concat(newArrivals).sort(sortPlayersAlphabetical).map(p => ({ id: p.id, name: p.name }));
-        removeScreenRemovedIds = new Set();
+        removedThisVisit = [];
         removeUndoSnapshots = {};
         renderRemovePlayerScreen();
         document.getElementById('screen-remove-player').classList.add('active');
     }
 
     function renderRemovePlayerScreen() {
-        const container = document.getElementById('remove-player-screen-list');
-        if (!container) return;
-        container.innerHTML = removeScreenSnapshot.map(p => {
-            const isRemoved = removeScreenRemovedIds.has(p.id);
-            const checkHtml = isRemoved ? '<span class="row-check">&#10003;</span>' : '';
-            const safeName = p.name.replace(/'/g, "\\'");
-            const clickAttr = isRemoved
-                ? `onclick="pendingUndoRemove(${p.id}, '${safeName}')"`
-                : `onclick="pendingRemove(${p.id}, '${safeName}')"`;
-            return `<div class="player-row remove-player-row" ${clickAttr}><span>${p.name}</span>${checkHtml}</div>`;
-        }).join('') || '<p style="text-align:center; color:var(--secondary);"><em>No players to remove</em></p>';
-    }
+        const activeContainer = document.getElementById('remove-player-screen-list');
+        const removedContainer = document.getElementById('removed-players-list');
+        const removedHeader = document.getElementById('removed-players-header');
+        if (!activeContainer || !removedContainer) return;
 
-    function pendingRemove(id, name) {
-        showConfirmation('removePlayer', { id, name });
-    }
+        const activeAll = sessionPlayers.concat(newArrivals).sort(sortPlayersAlphabetical);
+        activeContainer.innerHTML = activeAll.map(p =>
+            `<div class="player-row remove-player-row" onclick="removePlayerFromSession(${p.id})"><span>${p.name}</span></div>`
+        ).join('') || '<p style="text-align:center; color:var(--secondary);"><em>No active players</em></p>';
 
-    function pendingUndoRemove(id, name) {
-        showConfirmation('undoRemovePlayer', { id, name });
+        if (removedHeader) {
+            removedHeader.textContent = `Removed: ${removedThisVisit.length} Player${removedThisVisit.length === 1 ? '' : 's'}`;
+        }
+        removedContainer.innerHTML = removedThisVisit.map(p =>
+            `<div class="player-row" style="background:var(--card); border:1px solid #ccc;">
+                <span>${p.name}</span>
+                <button style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:1.1rem;" onclick="undoRemovePlayerFromSession(${p.id})" title="Undo removal">&#10005;</button>
+            </div>`
+        ).join('') || '<p style="text-align:center; color:var(--secondary); font-size:0.85rem;"><em>None removed yet</em></p>';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1815,7 +1812,7 @@
                 <button class="btn btn-primary" style="background-color:#25D366; color:#fff;" onclick="broadcastToWhatsApp()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#000000" style="vertical-align:-3px; margin-right:6px;" aria-hidden="true"><path d="M18 3v18l-8-4H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5l8-4zm2 5.5a4.5 4.5 0 0 1 0 7v-7zM6 17l1.5 4h2.2l-1.5-4H6z"/></svg>Broadcast to WhatsApp</button>
             </div>
 
-            <!-- V3.128 Multi-Select Add Player Screen -->
+            <!-- V3.129 Multi-Select Add Player Screen -->
             <div id="screen-add-player" class="screen">
                 <div class="card">
                     <h2>Add Player</h2>
@@ -1824,12 +1821,15 @@
                 </div>
             </div>
 
-            <!-- V3.128 Multi-Select Remove Player Screen -->
+            <!-- V3.129 Roll Call-Style Remove Player Screen (Upper Active / Lower Removed with Undo) -->
             <div id="screen-remove-player" class="screen">
                 <div class="card">
                     <h2>Remove Player</h2>
-                    <p style="font-size:0.85rem; color:var(--secondary); margin-bottom:10px;">Tap a player to remove; tap again to undo</p>
-                    <div id="remove-player-screen-list" class="player-grid"></div>
+                    <h3 style="margin-top: 5px; color: var(--secondary);">Active Players: Tap to Remove</h3>
+                    <div id="remove-player-screen-list" style="max-height: 250px; overflow-y: auto; padding: 5px; border: 1px solid #eee;"></div>
+                    <hr>
+                    <h3 id="removed-players-header">Removed: 0 Players</h3>
+                    <div id="removed-players-list"></div>
                 </div>
             </div>
 
@@ -1943,7 +1943,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.128</p>
+                    <p class="sub-screen-header">Version 3.129</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
