@@ -640,7 +640,7 @@
         document.getElementById('screen-settings-current-session').classList.add('active');
     }
 
-    // ── V3.131 Transfer Session (Copy/Paste Transfer Code) ────────
+    // ── V3.132 Transfer Session (Copy/Paste Transfer Code) ────────
     let _parsedTransferState = null;
 
     function buildTransferPayload() {
@@ -670,16 +670,16 @@
     function encodeTransferCode(payload) {
         const json = JSON.stringify(payload);
         const b64 = btoa(unescape(encodeURIComponent(json)));
-        return 'CF1:' + b64;
+        return 'CF1:' + b64 + ':END';
     }
 
     function decodeTransferCode(rawText) {
         if (!rawText || typeof rawText !== 'string') return null;
-        const cleaned = rawText.replace(/\s+/g, '');
-        const match = cleaned.match(/CF1:([A-Za-z0-9+/=]+)/);
+        const match = rawText.match(/CF1:([A-Za-z0-9+/=]+):END/);
         if (!match) return null;
         try {
-            const json = decodeURIComponent(escape(atob(match[1])));
+            const b64 = match[1].replace(/[\s\u200B-\u200D\uFEFF]/g, '');
+            const json = decodeURIComponent(escape(atob(b64)));
             const st = JSON.parse(json);
             if (!st || !Array.isArray(st.sessionPlayers) || !Array.isArray(st.currentPlaying) ||
                 !Array.isArray(st.currentSitting) || typeof st.currentIntervalCount !== 'number' ||
@@ -750,31 +750,25 @@
                 text: code
             }).catch(() => {});
         } else {
-            copyTransferCode();
-        }
-    }
-
-    function copyTransferCode() {
-        if (!(currentIntervalCount > 0 && sessionPlayers.length > 0)) return;
-        const code = encodeTransferCode(buildTransferPayload());
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(code).then(() => {
-                _showTransferSendStatus('Transfer code copied!');
-            }).catch(() => {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(() => {
+                    _showTransferSendStatus('Transfer code copied!');
+                }).catch(() => {
+                    if (_copyTextFallback(code)) _showTransferSendStatus('Transfer code copied!');
+                });
+            } else {
                 if (_copyTextFallback(code)) _showTransferSendStatus('Transfer code copied!');
-            });
-        } else {
-            if (_copyTextFallback(code)) _showTransferSendStatus('Transfer code copied!');
+            }
         }
     }
 
     function onTransferCodeInput() {
-        const raw        = document.getElementById('transfer-code-input').value.trim();
+        const raw        = document.getElementById('transfer-code-input').value;
         const previewDiv = document.getElementById('transfer-preview');
         const errorDiv   = document.getElementById('transfer-error');
         const loadBtn    = document.getElementById('transfer-load-btn');
 
-        if (!raw) {
+        if (!raw || !raw.trim()) {
             _parsedTransferState = null;
             previewDiv.style.display = 'none';
             errorDiv.style.display = 'none';
@@ -2164,8 +2158,7 @@
                         <em>No active session.</em>
                     </div>
                     <div id="transfer-send-actions" style="display:none;">
-                        <button class="btn" id="transfer-share-btn" onclick="shareTransferCode()" style="background:#025F33; color:#fff; margin-bottom:8px; touch-action:manipulation;">Share Session Data/Code</button>
-                        <button class="btn" id="transfer-copy-btn" onclick="copyTransferCode()" style="background:#e9ecef; color:#212529; margin-bottom:4px; touch-action:manipulation;">Copy Code</button>
+                        <button class="btn" id="transfer-share-btn" onclick="shareTransferCode()" style="background:#025F33; color:#fff; margin-bottom:4px; touch-action:manipulation;">Share Session Data</button>
                         <div id="transfer-send-status" style="font-size:0.85rem; color:#025F33; min-height:1.2em; text-align:center; margin-top:4px;"></div>
                     </div>
                 </div>
@@ -2194,7 +2187,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.131</p>
+                    <p class="sub-screen-header">Version 3.132</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
