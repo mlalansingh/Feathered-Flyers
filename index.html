@@ -535,7 +535,7 @@
         try { localStorage.setItem('mff_resume_session', JSON.stringify(state)); } catch (e) {}
     }
 
-    // ── V3.131 Restart Interval (1-Level Rollback Snapshot) ───────
+    // ── V3.132 Restart Interval (1-Level Rollback, Interval 2+ only) ──
     let previousIntervalSnapshot = null;
 
     function savePreviousIntervalSnapshot() {
@@ -578,16 +578,14 @@
         const summaryDiv = document.getElementById('restart-interval-summary');
         const confirmBtn = document.getElementById('restart-interval-confirm-btn');
         const snap = getPreviousIntervalSnapshot();
-        const hasActive = typeof sessionPlayers !== 'undefined' && sessionPlayers.length > 0 &&
-                          typeof currentIntervalCount !== 'undefined' && currentIntervalCount > 0;
-        if (hasActive && snap) {
-            const targetLabel = snap.currentIntervalCount > 0
-                ? `Interval ${snap.currentIntervalCount}`
-                : 'Pre-Interval 1 (Ready to Start)';
+        const canRestart = typeof sessionPlayers !== 'undefined' && sessionPlayers.length > 0 &&
+                           typeof currentIntervalCount !== 'undefined' && currentIntervalCount > 1 &&
+                           snap && snap.currentIntervalCount >= 1;
+        if (canRestart) {
             summaryDiv.innerHTML =
                 `<p style="margin-bottom:8px;"><strong>Current Interval:</strong> ${currentIntervalCount}</p>` +
                 `<p style="margin-bottom:8px;"><strong>Players checked in:</strong> ${sessionPlayers.length}</p>` +
-                `<p style="margin-bottom:8px;"><strong>Roll back to:</strong> ${targetLabel}</p>`;
+                `<p style="margin-bottom:8px;"><strong>Roll back to:</strong> Interval ${snap.currentIntervalCount}</p>`;
             confirmBtn.style.display = 'block';
         } else {
             summaryDiv.innerHTML = '<em>No previous interval available to restart.</em>';
@@ -598,7 +596,7 @@
 
     function performRestartInterval() {
         const snap = getPreviousIntervalSnapshot();
-        if (!snap) return;
+        if (!snap || snap.currentIntervalCount < 1) return;
         sessionPlayers       = snap.sessionPlayers;
         currentPlaying       = snap.currentPlaying;
         currentSitting       = snap.currentSitting;
@@ -620,8 +618,8 @@
             renderCourts_fromGroups();
             renderBench(currentSitting);
         } else {
-            document.getElementById('courts-container').innerHTML = '';
-            renderBench(currentSitting);
+            const activeCourts = Math.min(Math.floor(sessionPlayers.length / 4), numCourts);
+            renderSessionUI(activeCourts);
         }
         renderNewArrivals();
     }
@@ -1758,7 +1756,7 @@
         departureLog = [];
         localStorage.removeItem('mff_arrival_log');
         localStorage.removeItem('mff_departure_log');
-        savePreviousIntervalSnapshot();
+        clearPreviousIntervalSnapshot();
         showSessionScreen(); generateAssignments();
         saveSessionState(); // V2.107 fix: persist I1 immediately so Resume never loads a stale session
     }
@@ -2069,7 +2067,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.131</p>
+                    <p class="sub-screen-header">Version 3.132</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
