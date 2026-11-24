@@ -116,41 +116,11 @@
             margin-top: 4px;
         }
 
-        /* V3.138 Disintegrate & Blow Away (Remove Player) */
-        .remove-player-row.disintegrating {
-            pointer-events: none;
-            position: relative;
-            overflow: visible !important;
-            background: transparent !important;
-            border-color: transparent !important;
-            box-shadow: none !important;
-            transition: background 0.35s ease, border-color 0.35s ease;
-        }
-        .cf-blow-char {
-            display: inline-block;
-            will-change: transform, opacity, filter;
-            animation: cfBlowLetter 0.78s ease-out forwards;
-        }
-        .cf-blow-speck {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            background: #e74c3c;
-            pointer-events: none;
-            will-change: transform, opacity;
-            animation: cfBlowLetter 0.82s ease-out forwards;
-        }
-        @keyframes cfBlowLetter {
-            0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; filter: blur(0px); }
-            100% { transform: translate(var(--dx, 55px), var(--dy, -26px)) rotate(var(--rot, 24deg)) scale(0.45); opacity: 0; filter: blur(3px); }
-        }
-
         /* V3.138 Flying Swap Tiles */
         .cf-swap-flying {
             position: relative;
             z-index: 999 !important;
-            box-shadow: 0 8px 20px rgba(2, 95, 51, 0.32) !important;
+            box-shadow: 0 10px 24px rgba(2, 95, 51, 0.36) !important;
             will-change: transform;
         }
 
@@ -894,7 +864,7 @@
         let rosterHTML = displayPlayers.map(p => `
             <div class="player-row">
                 <span>${p.name}</span>
-                <button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="removePlayerFromSession(${p.id}, this)">✕</button>
+                <button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="removePlayerFromSession(${p.id})">✕</button>
             </div>
         `).join('');
 
@@ -1415,44 +1385,6 @@
         }
     }
 
-    function disintegrateRowAndRender(rowEl) {
-        rowEl.classList.add('disintegrating');
-        const span = rowEl.querySelector('span');
-        const text = span ? span.textContent : '';
-        if (span) {
-            span.innerHTML = '';
-            const chars = Array.from(text);
-            chars.forEach((ch, i) => {
-                const c = document.createElement('span');
-                c.className = 'cf-blow-char';
-                c.textContent = ch === ' ' ? '\u00A0' : ch;
-                const delay = (i * 0.022).toFixed(3);
-                const dx = Math.round(45 + Math.random() * 65);
-                const dy = Math.round(-12 - Math.random() * 34);
-                const rot = Math.round((Math.random() - 0.3) * 55);
-                c.style.animationDelay = delay + 's';
-                c.style.setProperty('--dx', dx + 'px');
-                c.style.setProperty('--dy', dy + 'px');
-                c.style.setProperty('--rot', rot + 'deg');
-                span.appendChild(c);
-            });
-            for (let k = 0; k < 8; k++) {
-                const speck = document.createElement('span');
-                speck.className = 'cf-blow-speck';
-                speck.style.left = Math.round(15 + Math.random() * 70) + '%';
-                speck.style.top = Math.round(20 + Math.random() * 60) + '%';
-                speck.style.animationDelay = (Math.random() * 0.18).toFixed(2) + 's';
-                speck.style.setProperty('--dx', Math.round(50 + Math.random() * 75) + 'px');
-                speck.style.setProperty('--dy', Math.round(-15 - Math.random() * 40) + 'px');
-                speck.style.setProperty('--rot', '0deg');
-                rowEl.appendChild(speck);
-            }
-        }
-        setTimeout(() => {
-            renderRemovePlayerScreen();
-        }, 820);
-    }
-
     function animateSwapTiles(moves) {
         requestAnimationFrame(() => {
             moves.forEach(({ id, oldRect }) => {
@@ -1465,9 +1397,9 @@
                 if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
                 el.classList.add('cf-swap-flying');
                 el.style.transition = 'none';
-                el.style.transform = `translate(${dx}px, ${dy}px) scale(1.04)`;
+                el.style.transform = `translate(${dx}px, ${dy}px) scale(1.06)`;
                 el.getBoundingClientRect();
-                el.style.transition = 'transform 0.45s cubic-bezier(0.22, 1, 0.36, 1)';
+                el.style.transition = 'transform 0.85s cubic-bezier(0.22, 1, 0.36, 1)';
                 el.style.transform = 'translate(0, 0) scale(1)';
                 const cleanup = () => {
                     el.classList.remove('cf-swap-flying');
@@ -1475,7 +1407,7 @@
                     el.style.transform = '';
                 };
                 el.addEventListener('transitionend', cleanup, { once: true });
-                setTimeout(cleanup, 520);
+                setTimeout(cleanup, 950);
             });
         });
     }
@@ -1810,7 +1742,7 @@
         } catch (e) {}
     }
 
-    function removePlayerFromSession(id, rowEl = null) {
+    function removePlayerFromSession(id) {
         swapCandidate = null;
         const spIdx = sessionPlayers.findIndex(p => p.id === id);
         const naIdx = newArrivals.findIndex(p => p.id === id);
@@ -1845,11 +1777,7 @@
         currentPlaying = currentPlaying.filter(p => p.id !== id);
         currentSitting = currentSitting.filter(p => p.id !== id);
         courtGroups = courtGroups.map(court => court.map(p => (p && p.id === id) ? null : p));
-        if (rowEl && !rowEl.classList.contains('disintegrating')) {
-            disintegrateRowAndRender(rowEl);
-        } else {
-            renderRemovePlayerScreen();
-        }
+        renderRemovePlayerScreen();
         try {
             renderCourts_fromGroups();
             renderBench(currentSitting);
