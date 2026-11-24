@@ -519,11 +519,20 @@
         renderAvailableRollCallPlayers();
     }
 
+    let rollCallDone = false;
+
+    function updateStartSessionBtnVisibility() {
+        const btn = document.getElementById('start-session-btn');
+        if (!btn) return;
+        btn.style.display = (rollCallDone && sessionPlayers.length > 1) ? 'block' : 'none';
+    }
+
     function showSetupScreen() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         document.getElementById('screen-setup').classList.add('active');
         lastScreen = 'screen-setup'; 
-        renderSessionRoster(); 
+        renderSessionRoster();
+        updateStartSessionBtnVisibility(); 
         renderLastSessionHistory(); 
     }
 
@@ -1499,6 +1508,8 @@
                 performRestartInterval();
             } else if (action === 'endSession') {
                 clearPreviousIntervalSnapshot();
+                rollCallDone = false;
+                updateStartSessionBtnVisibility();
                 if (intervalHistory.length > 0) {
                     localStorage.setItem('mff_last_session_history', JSON.stringify(intervalHistory));
                     const sitData = sessionPlayers.map(p => ({ name: p.name, sits: p.sits - (p.joinSits || 0) }))
@@ -1898,7 +1909,7 @@
                     <h3>Checked-In Roster: (0 Players)</h3>
                     <div id="session-roster-list-setup" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
                 </div>
-                <button class="btn btn-primary" onclick="startSession()" style="background-color:#025F33; color:#ffffff;">Start Session</button>
+                <button id="start-session-btn" class="btn btn-primary" onclick="startSession()" style="background-color:#025F33; color:#ffffff; display:none;">Start Session</button>
 
                 
 
@@ -2094,7 +2105,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.136</p>
+                    <p class="sub-screen-header">Version 3.137</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
@@ -2267,6 +2278,7 @@
         const activeScreen = document.querySelector('.screen.active');
         if (!activeScreen) return;
         if (activeScreen.id === 'screen-roll-call') {
+            rollCallDone = true;
             showSetupScreen();
         } else if (activeScreen.id === 'screen-add-player' || activeScreen.id === 'screen-remove-player') {
             showSessionScreen();
