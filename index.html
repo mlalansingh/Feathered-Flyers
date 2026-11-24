@@ -133,7 +133,7 @@
             margin-top: 4px;
         }
 
-        /* V3.138/3.139 Flying Swap Tiles */
+        /* V3.138+ Flying Swap Tiles */
         .cf-swap-flying {
             position: relative;
             z-index: 999 !important;
@@ -2171,7 +2171,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.139</p>
+                    <p class="sub-screen-header">Version 3.140</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
@@ -2357,8 +2357,19 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         const mainArea = document.querySelector('.main-content-area');
+        let lastObservedScreenId = null;
+        function onScreenClassChange() {
+            updateBackButtonVisibility();
+            const activeScreen = document.querySelector('.screen.active');
+            if (activeScreen && activeScreen.id !== lastObservedScreenId) {
+                lastObservedScreenId = activeScreen.id;
+                window.scrollTo(0, 0);
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+            }
+        }
         if (mainArea) {
-            const observer = new MutationObserver(updateBackButtonVisibility);
+            const observer = new MutationObserver(onScreenClassChange);
             observer.observe(mainArea, { attributes: true, subtree: true, attributeFilter: ['class'] });
         }
         updateBackButtonVisibility();
