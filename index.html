@@ -133,7 +133,7 @@
             margin-top: 4px;
         }
 
-        /* V3.138+ Flying Swap Tiles */
+        /* V3.141 Flying Swap & Reshuffle Tiles */
         .cf-swap-flying {
             position: relative;
             z-index: 999 !important;
@@ -1402,7 +1402,19 @@
         }
     }
 
-    function animateSwapTiles(moves) {
+    function snapshotAllSlotRects() {
+        const moves = [];
+        document.querySelectorAll('[id^="slot-"]').forEach(el => {
+            const id = el.id.slice(5);
+            if (id && !id.startsWith('open-')) {
+                moves.push({ id, oldRect: el.getBoundingClientRect() });
+            }
+        });
+        return moves;
+    }
+
+    function animateSwapTiles(moves, durationSec = 1.15) {
+        const ms = Math.round(durationSec * 1000) + 120;
         requestAnimationFrame(() => {
             moves.forEach(({ id, oldRect }) => {
                 if (!oldRect) return;
@@ -1416,7 +1428,7 @@
                 el.style.transition = 'none';
                 el.style.transform = `translate(${dx}px, ${dy}px) scale(1.06)`;
                 el.getBoundingClientRect();
-                el.style.transition = 'transform 0.85s cubic-bezier(0.22, 1, 0.36, 1)';
+                el.style.transition = `transform ${durationSec}s cubic-bezier(0.45, 0.05, 0.55, 0.95)`;
                 el.style.transform = 'translate(0, 0) scale(1)';
                 const cleanup = () => {
                     el.classList.remove('cf-swap-flying');
@@ -1424,7 +1436,7 @@
                     el.style.transform = '';
                 };
                 el.addEventListener('transitionend', cleanup, { once: true });
-                setTimeout(cleanup, 950);
+                setTimeout(cleanup, ms);
             });
         });
     }
@@ -1464,7 +1476,7 @@
             animateSwapTiles([
                 { id: origId1, oldRect: preRect1 },
                 { id: origId2, oldRect: preRect2 }
-            ]);
+            ], 1.15);
             return;
         }
 
@@ -1535,7 +1547,7 @@
         animateSwapTiles([
             { id: origId1, oldRect: preRect1 },
             { id: origId2, oldRect: preRect2 }
-        ]);
+        ], 1.15);
     }
 
     // --- MODALS & ALERTS ---
@@ -1567,9 +1579,11 @@
         document.getElementById('confirmYes').onclick = () => {
             document.getElementById('confirmModal').style.display = 'none';
             if (action === 'nextInterval') {
+                const preIntervalMoves = snapshotAllSlotRects();
                 savePreviousIntervalSnapshot();
                 generateAssignments();
                 saveSessionState();
+                animateSwapTiles(preIntervalMoves, 0.85);
             } else if (action === 'restartInterval') {
                 performRestartInterval();
             } else if (action === 'endSession') {
@@ -2171,7 +2185,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.140</p>
+                    <p class="sub-screen-header">Version 3.141</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
