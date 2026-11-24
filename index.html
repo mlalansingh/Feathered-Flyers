@@ -640,208 +640,6 @@
         document.getElementById('screen-settings-current-session').classList.add('active');
     }
 
-    // ── V3.132 Transfer Session (Copy/Paste Transfer Code) ────────
-    let _parsedTransferState = null;
-
-    function buildTransferPayload() {
-        const now = new Date();
-        return {
-            v: 1,
-            transferredAt: now.toLocaleString('en-CA', {
-                month: 'short', day: 'numeric', year: 'numeric',
-                hour: 'numeric', minute: '2-digit', hour12: true
-            }),
-            date: now.toLocaleDateString('en-CA', {weekday:'long', year:'numeric', month:'long', day:'numeric'}),
-            sessionPlayers:       sessionPlayers.map(p => Object.assign({}, p)),
-            currentPlaying:       currentPlaying.map(p => Object.assign({}, p)),
-            currentSitting:       currentSitting.map(p => Object.assign({}, p)),
-            newArrivals:          newArrivals.map(p => Object.assign({}, p)),
-            currentIntervalCount: currentIntervalCount,
-            intervalHistory:      JSON.parse(JSON.stringify(intervalHistory)),
-            numCourts:            numCourts,
-            totalIntervals:       totalIntervals,
-            checkInCounter:       checkInCounter,
-            arrivalLog:           JSON.parse(JSON.stringify(arrivalLog)),
-            departureLog:         JSON.parse(JSON.stringify(departureLog)),
-            courtGroups:          courtGroups.map(court => court.map(p => p ? Object.assign({}, p) : null))
-        };
-    }
-
-    function encodeTransferCode(payload) {
-        const json = JSON.stringify(payload);
-        const b64 = btoa(unescape(encodeURIComponent(json)));
-        return 'CF1:' + b64 + ':END';
-    }
-
-    function decodeTransferCode(rawText) {
-        if (!rawText || typeof rawText !== 'string') return null;
-        const match = rawText.match(/CF1:([A-Za-z0-9+/=]+):END/);
-        if (!match) return null;
-        try {
-            const b64 = match[1].replace(/[\s\u200B-\u200D\uFEFF]/g, '');
-            const json = decodeURIComponent(escape(atob(b64)));
-            const st = JSON.parse(json);
-            if (!st || !Array.isArray(st.sessionPlayers) || !Array.isArray(st.currentPlaying) ||
-                !Array.isArray(st.currentSitting) || typeof st.currentIntervalCount !== 'number' ||
-                typeof st.numCourts !== 'number') {
-                return null;
-            }
-            return st;
-        } catch (e) {
-            return null;
-        }
-    }
-
-    function showSettingsTransfer() {
-        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
-        const summaryDiv = document.getElementById('transfer-send-summary');
-        const actionsDiv = document.getElementById('transfer-send-actions');
-        const statusDiv  = document.getElementById('transfer-send-status');
-        statusDiv.textContent = '';
-
-        const hasActive = currentIntervalCount > 0 && sessionPlayers.length > 0;
-        if (hasActive) {
-            const waitingNote = newArrivals.length > 0 ? ` (${newArrivals.length} waiting)` : '';
-            summaryDiv.innerHTML =
-                `<strong>Interval ${currentIntervalCount}</strong> &bull; ${sessionPlayers.length} Active Players${waitingNote}`;
-            actionsDiv.style.display = 'block';
-        } else {
-            summaryDiv.innerHTML = '<em>No active session.</em>';
-            actionsDiv.style.display = 'none';
-        }
-
-        const inputEl = document.getElementById('transfer-code-input');
-        inputEl.value = '';
-        document.getElementById('transfer-preview').style.display = 'none';
-        document.getElementById('transfer-error').style.display = 'none';
-        document.getElementById('transfer-load-btn').style.display = 'none';
-        _parsedTransferState = null;
-
-        document.getElementById('screen-settings-transfer').classList.add('active');
-    }
-
-    function _copyTextFallback(text) {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        let ok = false;
-        try { ok = document.execCommand('copy'); } catch (e) {}
-        document.body.removeChild(ta);
-        return ok;
-    }
-
-    function _showTransferSendStatus(msg) {
-        const el = document.getElementById('transfer-send-status');
-        el.textContent = msg;
-        clearTimeout(el._timer);
-        el._timer = setTimeout(() => { el.textContent = ''; }, 2500);
-    }
-
-    function shareTransferCode() {
-        if (!(currentIntervalCount > 0 && sessionPlayers.length > 0)) return;
-        const code = encodeTransferCode(buildTransferPayload());
-        if (navigator.share) {
-            navigator.share({
-                title: 'CourtFlow Session Transfer',
-                text: code
-            }).catch(() => {});
-        } else {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(code).then(() => {
-                    _showTransferSendStatus('Transfer code copied!');
-                }).catch(() => {
-                    if (_copyTextFallback(code)) _showTransferSendStatus('Transfer code copied!');
-                });
-            } else {
-                if (_copyTextFallback(code)) _showTransferSendStatus('Transfer code copied!');
-            }
-        }
-    }
-
-    function onTransferCodeInput() {
-        const raw        = document.getElementById('transfer-code-input').value;
-        const previewDiv = document.getElementById('transfer-preview');
-        const errorDiv   = document.getElementById('transfer-error');
-        const loadBtn    = document.getElementById('transfer-load-btn');
-
-        if (!raw || !raw.trim()) {
-            _parsedTransferState = null;
-            previewDiv.style.display = 'none';
-            errorDiv.style.display = 'none';
-            loadBtn.style.display = 'none';
-            return;
-        }
-
-        const st = decodeTransferCode(raw);
-        if (!st) {
-            _parsedTransferState = null;
-            previewDiv.style.display = 'none';
-            errorDiv.textContent = 'Invalid or incomplete transfer code.';
-            errorDiv.style.display = 'block';
-            loadBtn.style.display = 'none';
-            return;
-        }
-
-        _parsedTransferState = st;
-        errorDiv.style.display = 'none';
-        const waitingText = st.newArrivals && st.newArrivals.length > 0
-            ? ` (${st.newArrivals.length} waiting)` : '';
-        const tsText = st.transferredAt || st.date || 'Unknown';
-        previewDiv.innerHTML =
-            `<div><strong>Interval:</strong> ${st.currentIntervalCount}</div>` +
-            `<div><strong>Active Players:</strong> ${st.sessionPlayers.length}${waitingText}</div>` +
-            `<div><strong>Timestamp:</strong> ${tsText}</div>`;
-        previewDiv.style.display = 'block';
-        loadBtn.style.display = 'block';
-    }
-
-    function loadTransferredSession() {
-        if (!_parsedTransferState) return;
-        const st = _parsedTransferState;
-        // Restore all state — algorithm variables only, no algorithm logic changed
-        sessionPlayers       = st.sessionPlayers;
-        currentPlaying       = st.currentPlaying;
-        currentSitting       = st.currentSitting;
-        courtGroups = st.courtGroups ? st.courtGroups : (() => {
-            const groups = [];
-            const _rCourts = Math.min(Math.floor(currentPlaying.length / 4), st.numCourts);
-            for (let _c = 0; _c < _rCourts; _c++) {
-                groups.push(currentPlaying.slice(_c * 4, _c * 4 + 4));
-            }
-            return groups;
-        })();
-        newArrivals          = st.newArrivals || [];
-        currentIntervalCount = st.currentIntervalCount;
-        intervalHistory      = st.intervalHistory || [];
-        numCourts            = st.numCourts;
-        totalIntervals       = st.totalIntervals ?? 6;
-        checkInCounter       = st.checkInCounter || 0;
-        arrivalLog           = st.arrivalLog   || [];
-        departureLog         = st.departureLog || [];
-
-        try { localStorage.setItem('mff_total_intervals', String(totalIntervals)); } catch (e) {}
-        saveSessionState();
-
-        _parsedTransferState = null;
-        document.getElementById('transfer-code-input').value = '';
-        document.getElementById('transfer-preview').style.display = 'none';
-        document.getElementById('transfer-load-btn').style.display = 'none';
-
-        const activeCourts = Math.min(Math.floor(sessionPlayers.length / 4), numCourts);
-        showSessionScreen();
-        if (courtGroups && courtGroups.length > 0) {
-            renderCourts_fromGroups();
-            renderBench(currentSitting);
-        } else {
-            renderSessionUI(activeCourts);
-        }
-        renderNewArrivals();
-    }
-
     function showSettingsResume() {
         document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
         const saved      = localStorage.getItem('mff_resume_session');
@@ -2073,9 +1871,6 @@
                     <div class="settings-menu-item" onclick="showSettingsAbout()">
                         <span>About</span><span class="menu-arrow">&#8250;</span>
                     </div>
-                    <div class="settings-menu-item" onclick="showSettingsTransfer()">
-                        <span>Transfer Session</span><span class="menu-arrow">&#8250;</span>
-                    </div>
                     <div class="settings-menu-item" onclick="showSettingsResume()">
                         <span>Resume Session</span><span class="menu-arrow">&#8250;</span>
                     </div>
@@ -2150,28 +1945,6 @@
                 </div>
             </div>
 
-            <!-- Settings: Transfer Session -->
-            <div id="screen-settings-transfer" class="screen">
-                <div class="card">
-                    <h2>Send Current Session</h2>
-                    <div id="transfer-send-summary" style="font-size:0.9rem; line-height:1.6; margin-bottom:12px;">
-                        <em>No active session.</em>
-                    </div>
-                    <div id="transfer-send-actions" style="display:none;">
-                        <button class="btn" id="transfer-share-btn" onclick="shareTransferCode()" style="background:#025F33; color:#fff; margin-bottom:4px; touch-action:manipulation;">Share Session Data</button>
-                        <div id="transfer-send-status" style="font-size:0.85rem; color:#025F33; min-height:1.2em; text-align:center; margin-top:4px;"></div>
-                    </div>
-                </div>
-                <div class="card">
-                    <h2>Receive Session</h2>
-                    <p style="font-size:0.85rem; color:#555; margin:0 0 8px 0;">Paste the transfer code copied from Gmail below:</p>
-                    <textarea id="transfer-code-input" rows="4" placeholder="Paste transfer code here..." oninput="onTransferCodeInput()" style="width:100%; box-sizing:border-box; font-family:monospace; font-size:0.82rem; padding:10px; border:1px solid #ccc; border-radius:8px; resize:vertical;"></textarea>
-                    <div id="transfer-preview" style="display:none; margin-top:10px; padding:10px; border-radius:8px; background:#f4f8f6; border:1px solid #c8dfd3; font-size:0.88rem; line-height:1.6;"></div>
-                    <div id="transfer-error" style="display:none; margin-top:8px; font-size:0.85rem; color:#c0392b;"></div>
-                    <button class="btn" id="transfer-load-btn" onclick="loadTransferredSession()" style="display:none; background:#025F33; color:#fff; margin-top:12px; touch-action:manipulation;">Load Transferred Session</button>
-                </div>
-            </div>
-
             <!-- Settings: Resume Session -->
             <div id="screen-settings-resume" class="screen">
                 <div class="card">
@@ -2187,7 +1960,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.132</p>
+                    <p class="sub-screen-header">Version 3.130</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
