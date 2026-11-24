@@ -534,6 +534,97 @@
         };
         try { localStorage.setItem('mff_resume_session', JSON.stringify(state)); } catch (e) {}
     }
+
+    // ── V3.131 Restart Interval (1-Level Rollback Snapshot) ───────
+    let previousIntervalSnapshot = null;
+
+    function savePreviousIntervalSnapshot() {
+        previousIntervalSnapshot = {
+            sessionPlayers:       JSON.parse(JSON.stringify(sessionPlayers)),
+            currentPlaying:       JSON.parse(JSON.stringify(currentPlaying)),
+            currentSitting:       JSON.parse(JSON.stringify(currentSitting)),
+            newArrivals:          JSON.parse(JSON.stringify(newArrivals)),
+            currentIntervalCount: currentIntervalCount,
+            intervalHistory:      JSON.parse(JSON.stringify(intervalHistory)),
+            numCourts:            numCourts,
+            totalIntervals:       totalIntervals,
+            checkInCounter:       checkInCounter,
+            arrivalLog:           JSON.parse(JSON.stringify(arrivalLog)),
+            departureLog:         JSON.parse(JSON.stringify(departureLog)),
+            courtGroups:          courtGroups.map(court => court.map(p => p ? JSON.parse(JSON.stringify(p)) : null))
+        };
+        try { localStorage.setItem('mff_prev_interval_snapshot', JSON.stringify(previousIntervalSnapshot)); } catch (e) {}
+    }
+
+    function getPreviousIntervalSnapshot() {
+        if (previousIntervalSnapshot) return previousIntervalSnapshot;
+        try {
+            const raw = localStorage.getItem('mff_prev_interval_snapshot');
+            if (raw) {
+                previousIntervalSnapshot = JSON.parse(raw);
+                return previousIntervalSnapshot;
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    function clearPreviousIntervalSnapshot() {
+        previousIntervalSnapshot = null;
+        try { localStorage.removeItem('mff_prev_interval_snapshot'); } catch (e) {}
+    }
+
+    function showSettingsRestartInterval() {
+        document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+        const summaryDiv = document.getElementById('restart-interval-summary');
+        const confirmBtn = document.getElementById('restart-interval-confirm-btn');
+        const snap = getPreviousIntervalSnapshot();
+        const hasActive = typeof sessionPlayers !== 'undefined' && sessionPlayers.length > 0 &&
+                          typeof currentIntervalCount !== 'undefined' && currentIntervalCount > 0;
+        if (hasActive && snap) {
+            const targetLabel = snap.currentIntervalCount > 0
+                ? `Interval ${snap.currentIntervalCount}`
+                : 'Pre-Interval 1 (Ready to Start)';
+            summaryDiv.innerHTML =
+                `<p style="margin-bottom:8px;"><strong>Current Interval:</strong> ${currentIntervalCount}</p>` +
+                `<p style="margin-bottom:8px;"><strong>Players checked in:</strong> ${sessionPlayers.length}</p>` +
+                `<p style="margin-bottom:8px;"><strong>Roll back to:</strong> ${targetLabel}</p>`;
+            confirmBtn.style.display = 'block';
+        } else {
+            summaryDiv.innerHTML = '<em>No previous interval available to restart.</em>';
+            confirmBtn.style.display = 'none';
+        }
+        document.getElementById('screen-settings-restart-interval').classList.add('active');
+    }
+
+    function performRestartInterval() {
+        const snap = getPreviousIntervalSnapshot();
+        if (!snap) return;
+        sessionPlayers       = snap.sessionPlayers;
+        currentPlaying       = snap.currentPlaying;
+        currentSitting       = snap.currentSitting;
+        courtGroups          = snap.courtGroups || [];
+        newArrivals          = snap.newArrivals || [];
+        currentIntervalCount = snap.currentIntervalCount;
+        intervalHistory      = snap.intervalHistory || [];
+        numCourts            = snap.numCourts;
+        totalIntervals       = snap.totalIntervals ?? 6;
+        checkInCounter       = snap.checkInCounter || 0;
+        arrivalLog           = snap.arrivalLog   || [];
+        departureLog         = snap.departureLog || [];
+
+        clearPreviousIntervalSnapshot();
+        saveSessionState();
+
+        showSessionScreen();
+        if (courtGroups && courtGroups.length > 0) {
+            renderCourts_fromGroups();
+            renderBench(currentSitting);
+        } else {
+            document.getElementById('courts-container').innerHTML = '';
+            renderBench(currentSitting);
+        }
+        renderNewArrivals();
+    }
     // ──────────────────────────────────────────────────────────────
 
     function showSettingsScreen() {
@@ -1360,6 +1451,7 @@
         let msg = "";
         if (action === 'nextInterval') msg = "Confirm Reshuffle for next interval?";
         else if (action === 'endSession') msg = "End Session? This will reset all data.";
+        else if (action === 'restartInterval') msg = "Restart Interval?\nRoll back to the previous interval and undo this interval's sit counts and log entry?";
         else if (action === 'swap') msg = "Confirm player swap?";
         else if (action === 'removePlayer') msg = `Remove ${payload.name} from the session?`;
         else if (action === 'resumeSession') msg = "This will restore your last session exactly as it was — courts, bench, and player assignments. The session log and sit counts will continue from where you left off.";
@@ -1383,9 +1475,13 @@
         document.getElementById('confirmYes').onclick = () => {
             document.getElementById('confirmModal').style.display = 'none';
             if (action === 'nextInterval') {
+                savePreviousIntervalSnapshot();
                 generateAssignments();
                 saveSessionState();
+            } else if (action === 'restartInterval') {
+                performRestartInterval();
             } else if (action === 'endSession') {
+                clearPreviousIntervalSnapshot();
                 if (intervalHistory.length > 0) {
                     localStorage.setItem('mff_last_session_history', JSON.stringify(intervalHistory));
                     const sitData = sessionPlayers.map(p => ({ name: p.name, sits: p.sits - (p.joinSits || 0) }))
@@ -1662,6 +1758,7 @@
         departureLog = [];
         localStorage.removeItem('mff_arrival_log');
         localStorage.removeItem('mff_departure_log');
+        savePreviousIntervalSnapshot();
         showSessionScreen(); generateAssignments();
         saveSessionState(); // V2.107 fix: persist I1 immediately so Resume never loads a stale session
     }
@@ -1874,6 +1971,9 @@
                     <div class="settings-menu-item" onclick="showSettingsResume()">
                         <span>Resume Session</span><span class="menu-arrow">&#8250;</span>
                     </div>
+                    <div class="settings-menu-item" onclick="showSettingsRestartInterval()">
+                        <span>Restart Interval</span><span class="menu-arrow">&#8250;</span>
+                    </div>
                     <div class="settings-menu-item" onclick="showSettingsEndSession()">
                         <span>End Current Session</span><span class="menu-arrow">&#8250;</span>
                     </div>
@@ -1882,6 +1982,15 @@
 
             <!-- Settings: Number of Courts -->
             
+            <!-- Settings: Restart Interval -->
+            <div id="screen-settings-restart-interval" class="screen">
+                <div class="card">
+                    <h2>Restart Interval</h2>
+                    <div id="restart-interval-summary" style="font-size: 0.9rem; color: var(--dark); margin-bottom: 15px;"></div>
+                    <button id="restart-interval-confirm-btn" class="btn btn-danger" onclick="showConfirmation('restartInterval')" style="display:none; touch-action:manipulation;">Restart Interval</button>
+                </div>
+            </div>
+
             <!-- Settings: End Current Session -->
             <div id="screen-settings-end-session" class="screen">
                 <div class="card">
@@ -1960,7 +2069,7 @@
             <div id="screen-settings-about" class="screen">
                 <div class="card">
                     <h2>About</h2>
-                    <p class="sub-screen-header">Version 3.130</p>
+                    <p class="sub-screen-header">Version 3.131</p>
                     <p style="font-size:0.85rem; font-style:italic; color:#444; line-height:1.6;">
                         By using this application, you agree that it is proprietary.
                         This application is the intellectual property of its developer and is
